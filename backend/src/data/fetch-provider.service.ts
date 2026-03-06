@@ -9,5 +9,6 @@ export class FetchProvider {
         const boats = await AppDataSource.manager.find(Boat);
         return boats || [];
     }
+
     //#endregion
 }
