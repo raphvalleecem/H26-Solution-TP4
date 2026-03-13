@@ -1,95 +1,102 @@
+```vue
 <script lang="ts" setup>
-import WelcomeItem from './WelcomeItem.vue'
-import DocumentationIcon from './icons/IconDocumentation.vue'
-import ToolingIcon from './icons/IconTooling.vue'
-import EcosystemIcon from './icons/IconEcosystem.vue'
-import CommunityIcon from './icons/IconCommunity.vue'
-import SupportIcon from './icons/IconSupport.vue'
+import { reactive } from 'vue'
 
-const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
+const form = reactive({
+  yacht: '',
+  owner: '',
+
+  elapsed_hr: '',
+  elapsed_min: '',
+  elapsed_sec: '',
+
+  pyn: '',
+
+  place: '',
+  points: '',
+
+  notes: '',
+})
+
+const submitForm = () => {
+  console.log('Form data:', form)
+}
 </script>
 
 <template>
-  <WelcomeItem>
-    <template #icon>
-      <DocumentationIcon />
-    </template>
-    <template #heading>Documentation</template>
+  <div class="form-container">
+    <h1>Race Record Entry</h1>
 
-    Vue’s
-    <a href="https://vuejs.org/" rel="noopener" target="_blank">official documentation</a>
-    provides you with all information you need to get started.
-  </WelcomeItem>
+    <form @submit.prevent="submitForm">
+      <div class="row">
+        <label>Yacht</label>
+        <input v-model="form.yacht" type="text" />
+      </div>
 
-  <WelcomeItem>
-    <template #icon>
-      <ToolingIcon />
-    </template>
-    <template #heading>Tooling</template>
+      <div class="row">
+        <label>Owner</label>
+        <input v-model="form.owner" type="text" />
+      </div>
 
-    This project is served and bundled with
-    <a href="https://vite.dev/guide/features.html" rel="noopener" target="_blank">Vite</a>. The
-    recommended IDE setup is
-    <a href="https://code.visualstudio.com/" rel="noopener" target="_blank">VSCode</a>
-    +
-    <a href="https://github.com/vuejs/language-tools" rel="noopener" target="_blank"
-      >Vue - Official</a
-    >. If you need to test your components and web pages, check out
-    <a href="https://vitest.dev/" rel="noopener" target="_blank">Vitest</a>
-    and
-    <a href="https://www.cypress.io/" rel="noopener" target="_blank">Cypress</a>
-    /
-    <a href="https://playwright.dev/" rel="noopener" target="_blank">Playwright</a>.
+      <fieldset>
+        <legend>Elapsed Time</legend>
+        <input v-model="form.elapsed_hr" placeholder="hr" type="number" />
+        <input v-model="form.elapsed_min" placeholder="min" type="number" />
+        <input v-model="form.elapsed_sec" placeholder="sec" type="number" />
+      </fieldset>
 
-    <br />
+      <div class="row">
+        <label>PYN</label>
+        <input v-model="form.pyn" type="number" />
+      </div>
 
-    More instructions are available in
-    <a href="javascript:void(0)" @click="openReadmeInEditor"><code>README.md</code></a
-    >.
-  </WelcomeItem>
+      <div class="row">
+        <label>Place</label>
+        <input v-model="form.place" type="number" />
+      </div>
 
-  <WelcomeItem>
-    <template #icon>
-      <EcosystemIcon />
-    </template>
-    <template #heading>Ecosystem</template>
+      <div class="row">
+        <label>Points</label>
+        <input v-model="form.points" type="number" />
+      </div>
 
-    Get official tools and libraries for your project:
-    <a href="https://pinia.vuejs.org/" rel="noopener" target="_blank">Pinia</a>,
-    <a href="https://router.vuejs.org/" rel="noopener" target="_blank">Vue Router</a>,
-    <a href="https://test-utils.vuejs.org/" rel="noopener" target="_blank">Vue Test Utils</a>, and
-    <a href="https://github.com/vuejs/devtools" rel="noopener" target="_blank">Vue Dev Tools</a>. If
-    you need more resources, we suggest paying
-    <a href="https://github.com/vuejs/awesome-vue" rel="noopener" target="_blank">Awesome Vue</a>
-    a visit.
-  </WelcomeItem>
+      <div class="row">
+        <label>Notes</label>
+        <textarea v-model="form.notes"></textarea>
+      </div>
 
-  <WelcomeItem>
-    <template #icon>
-      <CommunityIcon />
-    </template>
-    <template #heading>Community</template>
-
-    Got stuck? Ask your question on
-    <a href="https://chat.vuejs.org" rel="noopener" target="_blank">Vue Land</a>
-    (our official Discord server), or
-    <a href="https://stackoverflow.com/questions/tagged/vue.js" rel="noopener" target="_blank"
-      >StackOverflow</a
-    >. You should also follow the official
-    <a href="https://bsky.app/profile/vuejs.org" rel="noopener" target="_blank">@vuejs.org</a>
-    Bluesky account or the
-    <a href="https://x.com/vuejs" rel="noopener" target="_blank">@vuejs</a>
-    X account for latest news in the Vue world.
-  </WelcomeItem>
-
-  <WelcomeItem>
-    <template #icon>
-      <SupportIcon />
-    </template>
-    <template #heading>Support Vue</template>
-
-    As an independent project, Vue relies on community backing for its sustainability. You can help
-    us by
-    <a href="https://vuejs.org/sponsor/" rel="noopener" target="_blank">becoming a sponsor</a>.
-  </WelcomeItem>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
 </template>
+
+<style scoped>
+.form-container {
+  max-width: 600px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+fieldset input {
+  width: 60px;
+  margin-right: 5px;
+}
+
+button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+</style>
+```
