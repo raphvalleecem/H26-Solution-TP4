@@ -8,6 +8,11 @@ router.get('/boats', async (req: Request, res: Response) => {
     res.json(await getProvider().getBoats());
 });
 
+router.get('/test', async (req: Request, res: Response) => {
+    await getProvider().addBoat()
+    res.json("test");
+});
+
 function getProvider() {
     if (fetchProvider) {
         return fetchProvider;

@@ -6,16 +6,13 @@ services:
     container_name: postgresql
     restart: always            # Redémarre automatiquement en cas de crash
     environment:
-      #POSTGRES_USER: ${DB_USER}
-      #POSTGRES_PASSWORD: ${DB_PASSWORD}
-      #POSTGRES_DB: ${DB_NAME}POSTGRES_USER: ${DB_USER}
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: test
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"            # Expose le port vers l'hôte (Hôte:Conteneur)
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Persistance des données
+      - pgdata:/var/lib/postgresql  # Persistance des données
     healthcheck:               # Vérifie que la DB est prête avant que d'autres services ne se connectent
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
