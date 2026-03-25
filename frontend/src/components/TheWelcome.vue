@@ -2,12 +2,20 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 
-const form = reactive({
+interface FormDataModel {
+  yacht: string
+  owner: string
+  pyn: string
+  place: string
+  points: string
+  elapsed_sec: string
+  notes: string
+}
+
+const form = reactive<FormDataModel>({
   yacht: '',
   owner: '',
 
-  elapsed_hr: '',
-  elapsed_min: '',
   elapsed_sec: '',
 
   pyn: '',
@@ -18,8 +26,32 @@ const form = reactive({
   notes: '',
 })
 
-const submitForm = () => {
+const submitForm = async () => {
   console.log('Form data:', form)
+
+  try {
+    // Remplace 'http://localhost:3000/api/race' par l'URL réelle de ton Express
+    const response = await fetch('http://localhost:3000/api/race', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // On transforme l'objet réactif "form" en texte JSON
+      body: JSON.stringify(form),
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      alert('Données envoyées avec succès !')
+      console.log('Réponse du serveur:', result)
+    } else {
+      console.error('Erreur serveur:', response.statusText)
+      alert('Le serveur a renvoyé une erreur.')
+    }
+  } catch (error) {
+    console.error('Erreur réseau ou connexion impossible:', error)
+    alert('Impossible de contacter le serveur Express.')
+  }
 }
 </script>
 
@@ -39,9 +71,7 @@ const submitForm = () => {
       </div>
 
       <fieldset>
-        <legend>Elapsed Time</legend>
-        <input v-model="form.elapsed_hr" placeholder="hr" type="number" />
-        <input v-model="form.elapsed_min" placeholder="min" type="number" />
+        <legend>Elapsed Time in sec</legend>
         <input v-model="form.elapsed_sec" placeholder="sec" type="number" />
       </fieldset>
 
