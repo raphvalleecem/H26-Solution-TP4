@@ -10,14 +10,9 @@ export class FetchProvider {
         return boats || [];
     }
 
-    public async addBoat(): Promise<void> {
-        let boat: Boat = new Boat();
-        boat.url = "https://boats.json";
-        boat.name = "Boat";
-        boat.imageUrl = "https://boats.com/image.png"
-        let boats: Boat[] = [boat];
-        await AppDataSource.manager.insert(Boat, boats);
-        await AppDataSource.manager.save(boats);
+    public async addBoat(boat: Boat): Promise<void> {
+        await AppDataSource.manager.insert(Boat, boat);
+        await AppDataSource.manager.save(boat);
     }
 
     //#endregion
