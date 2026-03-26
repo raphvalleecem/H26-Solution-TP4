@@ -33,16 +33,6 @@ router.post('/boat', upload.none(), async (req: Request, res: Response) => {
     }
 });
 
-const generateBoatName = (): string => {
-    const adjectives = ["Crimson", "Salty", "Gallant", "Mystic", "Golden", "Swift", "Starlight"];
-    const nouns = ["Whale", "Voyager", "Drifter", "Mariner", "Wave", "Seeker", "Siren"];
-
-    const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-
-    return `${randomAdj} ${randomNoun}`;
-};
-
 function getProvider() {
     if (fetchProvider) {
         return fetchProvider;

@@ -1,6 +1,7 @@
 ```vue
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import ListBoats from './ListBoats.vue'
 
 interface FormDataModel {
   yacht: string
@@ -26,27 +27,44 @@ const form = reactive<FormDataModel>({
   notes: '',
 })
 
+const boatsRefreshKey = ref(0)
+
 const submitForm = async () => {
   console.log('Form data:', form)
 
+  const yachtName = form.yacht.trim()
+  if (!yachtName) {
+    alert('Le nom du bateau est obligatoire.')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('name', yachtName)
+  formData.append('owner', form.owner)
+  formData.append('pyn', form.pyn)
+  formData.append('place', form.place)
+  formData.append('points', form.points)
+  formData.append('elapsed_sec', form.elapsed_sec)
+  formData.append('notes', form.notes)
+
   try {
-    // Remplace 'http://localhost:3000/api/race' par l'URL réelle de ton Express
-    const response = await fetch('http://localhost:3000/api/race', {
+    // Si ton backend est monte sous /api, remplace ici par /api/boat.
+    const response = await fetch('http://localhost:3000/boat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // On transforme l'objet réactif "form" en texte JSON
-      body: JSON.stringify(form),
+      // Ne pas fixer Content-Type manuellement avec FormData (boundary auto)
+      body: formData,
     })
 
+    const data = await response.json().catch(() => null)
+
     if (response.ok) {
-      const result = await response.json()
       alert('Données envoyées avec succès !')
-      console.log('Réponse du serveur:', result)
+      console.log('Réponse du serveur:', data)
+      boatsRefreshKey.value += 1
     } else {
-      console.error('Erreur serveur:', response.statusText)
-      alert('Le serveur a renvoyé une erreur.')
+      const detail = data?.error || data?.message || response.statusText
+      console.error('Erreur serveur:', response.status, detail)
+      alert(`Erreur serveur (${response.status}) : ${detail}`)
     }
   } catch (error) {
     console.error('Erreur réseau ou connexion impossible:', error)
@@ -97,6 +115,10 @@ const submitForm = async () => {
 
       <button type="submit">Submit</button>
     </form>
+
+    <section class="boats-section">
+      <ListBoats :key="boatsRefreshKey" />
+    </section>
   </div>
 </template>
 
@@ -127,6 +149,10 @@ fieldset input {
 button {
   padding: 8px 16px;
   cursor: pointer;
+}
+
+.boats-section {
+  margin-top: 24px;
 }
 </style>
 ```
