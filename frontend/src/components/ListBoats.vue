@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
@@ -53,8 +53,8 @@ onMounted(() => {
         <p><strong>Image URL:</strong> {{ bateau.imageUrl || 'Non renseignee' }}</p>
         <img
           v-if="bateau.imageUrl"
-          :src="bateau.imageUrl"
           :alt="`Image du bateau ${bateau.displayName}`"
+          :src="bateau.imageUrl"
           class="boat-image"
         />
       </li>

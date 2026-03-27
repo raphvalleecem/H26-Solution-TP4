@@ -1,7 +1,6 @@
 ```vue
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import ListBoats from './ListBoats.vue'
 
 interface FormDataModel {
   yacht: string
@@ -48,10 +47,8 @@ const submitForm = async () => {
   formData.append('notes', form.notes)
 
   try {
-    // Si ton backend est monte sous /api, remplace ici par /api/boat.
     const response = await fetch('http://localhost:3000/boat', {
       method: 'POST',
-      // Ne pas fixer Content-Type manuellement avec FormData (boundary auto)
       body: formData,
     })
 
@@ -115,10 +112,6 @@ const submitForm = async () => {
 
       <button type="submit">Submit</button>
     </form>
-
-    <section class="boats-section">
-      <ListBoats :key="boatsRefreshKey" />
-    </section>
   </div>
 </template>
 
@@ -150,9 +143,4 @@ button {
   padding: 8px 16px;
   cursor: pointer;
 }
-
-.boats-section {
-  margin-top: 24px;
-}
 </style>
-```

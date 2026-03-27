@@ -4,7 +4,7 @@ import ListBoats from '../components/ListBoats.vue'
 
 <template>
   <main>
+    <p>Boat</p>
     <ListBoats />
   </main>
 </template>
-
