@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import BoatForm from '../components/BoatForm.vue'
-import { findBoatById } from '../data/boats'
+import BoatForm from '../../components/BoatForm.vue'
+import { findBoatById } from '../../data/boats'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,4 +49,5 @@ function cancel() {
     @cancel="cancel"
   />
 </template>
+
 

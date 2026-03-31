@@ -8,3 +8,4 @@ import EntryForm from '@/components/EntryForm.vue'
     <EntryForm />
   </main>
 </template>
+

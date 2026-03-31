@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { findBoatById } from '../data/boats'
+import { findBoatById } from '../../data/boats'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,4 +45,5 @@ function confirmDelete() {
     </RouterLink>
   </section>
 </template>
+
 

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import ListBoats from '../components/ListBoats.vue'
+import ListBoats from '../../components/ListBoats.vue'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boats } from '../data/boats'
+import { boats } from '../../data/boats'
 
 DataTable.use(DataTablesCore)
 </script>
@@ -50,3 +50,4 @@ DataTable.use(DataTablesCore)
     </DataTable>
   </main>
 </template>
+

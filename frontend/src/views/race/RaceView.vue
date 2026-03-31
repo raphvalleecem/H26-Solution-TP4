@@ -2,6 +2,7 @@
 
 <template>
   <main>
-    <p>Class</p>
+    <p>Race</p>
   </main>
 </template>
+

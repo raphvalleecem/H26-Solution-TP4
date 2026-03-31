@@ -12,42 +12,42 @@ const router = createRouter({
     {
       path: '/race',
       name: 'race',
-      component: () => import('../views/RaceView.vue'),
+      component: () => import('../views/race/RaceView.vue'),
     },
     {
       path: '/entry',
       name: 'entry',
-      component: () => import('../views/EntryView.vue'),
+      component: () => import('../views/entry/EntryView.vue'),
     },
     {
       path: '/series',
       name: 'series',
-      component: () => import('../views/SeriesView.vue'),
+      component: () => import('../views/series/SeriesView.vue'),
     },
     {
       path: '/boat',
       name: 'boat',
-      component: () => import('../views/BoatsView.vue'),
+      component: () => import('../views/boat/BoatsView.vue'),
     },
     {
       path: '/boat/create',
       name: 'boat-create',
-      component: () => import('../views/BoatCreateView.vue'),
+      component: () => import('../views/boat/BoatCreateView.vue'),
     },
     {
       path: '/boat/edit/:id',
       name: 'boat-edit',
-      component: () => import('../views/BoatEditView.vue'),
+      component: () => import('../views/boat/BoatEditView.vue'),
     },
     {
       path: '/boat/delete/:id',
       name: 'boat-delete',
-      component: () => import('../views/BoatDeleteView.vue'),
+      component: () => import('../views/boat/BoatDeleteView.vue'),
     },
     {
       path: '/class',
       name: 'class',
-      component: () => import('../views/ClassView.vue'),
+      component: () => import('../views/class/ClassView.vue'),
     },
   ],
 })

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import BoatForm from '../components/BoatForm.vue'
+import BoatForm from '../../components/BoatForm.vue'
 
 const router = useRouter()
 
@@ -22,4 +22,5 @@ function cancel() {
 <template>
   <BoatForm title="Create boat" submit-label="Create" @submit="createBoat" @cancel="cancel" />
 </template>
+
 
