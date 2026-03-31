@@ -1,4 +1,6 @@
 import './assets/main.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'datatables.net-bs4/css/dataTables.bootstrap4.min.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
