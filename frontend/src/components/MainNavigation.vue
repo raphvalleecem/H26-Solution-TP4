@@ -4,7 +4,10 @@ import { computed } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
-const routes = router.getRoutes().filter((route) => route.name && route.name !== 'home')
+const allowedRouteNames = new Set(['race', 'entry', 'series', 'boat', 'class'])
+const routes = router
+  .getRoutes()
+  .filter((route) => route.name && allowedRouteNames.has(String(route.name)))
 
 const breadcrumbs = computed(() => {
   if (route.name === 'home') return []

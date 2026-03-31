@@ -30,6 +30,21 @@ const router = createRouter({
       component: () => import('../views/BoatsView.vue'),
     },
     {
+      path: '/boat/create',
+      name: 'boat-create',
+      component: () => import('../views/BoatCreateView.vue'),
+    },
+    {
+      path: '/boat/edit/:id',
+      name: 'boat-edit',
+      component: () => import('../views/BoatEditView.vue'),
+    },
+    {
+      path: '/boat/delete/:id',
+      name: 'boat-delete',
+      component: () => import('../views/BoatDeleteView.vue'),
+    },
+    {
       path: '/class',
       name: 'class',
       component: () => import('../views/ClassView.vue'),

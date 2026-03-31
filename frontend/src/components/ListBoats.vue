@@ -44,7 +44,6 @@ onMounted(() => {
 
 <template>
   <div class="boats-container">
-    <h1>Liste bateaux</h1>
     <ul>
       <li v-for="bateau in bateaux" :key="bateau.id">
         <p><strong>ID:</strong> {{ bateau.id }}</p>
