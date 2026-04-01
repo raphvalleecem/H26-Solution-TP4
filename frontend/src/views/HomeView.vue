@@ -2,7 +2,11 @@
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const routes = router.getRoutes().filter((route) => route.name !== 'home')
+const homeRouteOrder = ['race', 'entry', 'series', 'boat', 'class'] as const
+const routesByName = new Map(router.getRoutes().map((route) => [String(route.name), route]))
+const routes = homeRouteOrder
+  .map((routeName) => routesByName.get(routeName))
+  .filter((route): route is NonNullable<typeof route> => Boolean(route))
 const topRoutes = routes.slice(0, 2)
 const bottomRoutes = routes.slice(2, 5)
 </script>
