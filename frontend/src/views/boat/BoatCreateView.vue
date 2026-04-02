@@ -5,12 +5,12 @@ import BoatForm from '../../components/BoatForm.vue'
 const router = useRouter()
 
 function createBoat(payload: {
-  nom: string
-  classe: string
-  numeroVoile: string
-  barreur: string
+  name: string
+  boatClassId: number
+  sailNumber: number
+  helmName: string
 }) {
-  window.alert(`Boat created: ${payload.nom}`)
+  window.alert(`Boat created: ${payload.name}`)
   router.push({ name: 'boat' })
 }
 
@@ -22,5 +22,3 @@ function cancel() {
 <template>
   <BoatForm title="Create boat" submit-label="Create" @submit="createBoat" @cancel="cancel" />
 </template>
-
-

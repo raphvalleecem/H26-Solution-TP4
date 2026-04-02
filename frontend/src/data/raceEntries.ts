@@ -2,12 +2,18 @@ export type RaceEntryRow = {
   id: number
   boatId: number
   raceId: number
+  seriesEntryId?: number
 }
 
 export const raceEntries: RaceEntryRow[] = [
-  { id: 1, boatId: 1, raceId: 1 },
-  { id: 2, boatId: 2, raceId: 1 },
-  { id: 3, boatId: 1, raceId: 2 },
+  { id: 1, boatId: 1, raceId: 1, seriesEntryId: 1 },
+  { id: 2, boatId: 5, raceId: 1, seriesEntryId: 2 },
+  { id: 3, boatId: 9, raceId: 1, seriesEntryId: 3 },
+  { id: 4, boatId: 1, raceId: 2, seriesEntryId: 1 },
+  { id: 5, boatId: 5, raceId: 2, seriesEntryId: 2 },
+  { id: 6, boatId: 2, raceId: 4, seriesEntryId: 4 },
+  { id: 7, boatId: 3, raceId: 4, seriesEntryId: 5 },
+  { id: 8, boatId: 6, raceId: 6, seriesEntryId: 6 },
 ]
 
 export function findRaceEntryById(id: number): RaceEntryRow | undefined {

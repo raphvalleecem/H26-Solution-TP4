@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { deleteSeries, findSeriesById } from '../../data/series'
+import { findSeriesById } from '../../data/series'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,11 +10,6 @@ const seriesId = computed(() => Number.parseInt(String(route.params.id), 10))
 const seriesItem = computed(() => (Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value)))
 
 function confirmDelete() {
-  if (!seriesItem.value) {
-    return
-  }
-
-  deleteSeries(seriesItem.value.id)
   router.push({ name: 'series' })
 }
 </script>
@@ -27,9 +22,9 @@ function confirmDelete() {
 
     <div v-else class="card mt-3">
       <div class="card-body">
-        <p class="mb-2"><strong>ID:</strong> {{ seriesItem.id }}</p>
+        <p class="mb-2"><strong>#:</strong> {{ seriesItem.id }}</p>
         <p class="mb-2"><strong>Name:</strong> {{ seriesItem.name }}</p>
-        <p class="text-danger">This action cannot be undone.</p>
+        <p class="text-danger">Prototype UX: confirmation returns to index only.</p>
 
         <button class="btn btn-danger mr-2" type="button" @click="confirmDelete">Delete</button>
         <RouterLink class="btn btn-outline-secondary" :to="{ name: 'series' }">Cancel</RouterLink>
@@ -37,4 +32,3 @@ function confirmDelete() {
     </div>
   </section>
 </template>
-

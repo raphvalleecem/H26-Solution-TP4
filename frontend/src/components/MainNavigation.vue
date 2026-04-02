@@ -1,28 +1,40 @@
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const router = useRouter()
 const route = useRoute()
-const allowedRouteNames = new Set(['race', 'entry', 'series', 'boat', 'class'])
-const routes = router
-  .getRoutes()
-  .filter((route) => route.name && allowedRouteNames.has(String(route.name)))
 
 const breadcrumbs = computed(() => {
-  if (route.name === 'home') return []
-  const pathParts = route.path.split('/')
-  if (pathParts.length <= 1) return []
+  const pathParts = route.path.split('/').filter(Boolean)
+  if (pathParts.length === 0) {
+    return []
+  }
 
-  const items: { name: string; path: string; isLast: boolean }[] = []
+  const labels: Record<string, string> = {
+    race: 'Race',
+    series: 'Series',
+    boat: 'Boat',
+    'boat-class': 'Boat classes',
+    'race-class': 'Race classes',
+    delete: 'Delete',
+    create: 'Create',
+  }
+
   let currentPath = ''
+  const items = [
+    {
+      path: '/',
+      name: 'Home',
+      isLast: false,
+    },
+  ]
 
   pathParts.forEach((part, index) => {
     currentPath += `/${part}`
-    const routeMatch = router.getRoutes().find((r) => r.path === currentPath)
+    const parsed = Number.parseInt(part, 10)
     items.push({
-      name: (routeMatch?.name as string) || part,
       path: currentPath,
+      name: Number.isNaN(parsed) ? (labels[part] ?? part) : `#${parsed}`,
       isLast: index === pathParts.length - 1,
     })
   })
@@ -34,15 +46,24 @@ const breadcrumbs = computed(() => {
 <template>
   <div>
     <nav class="main-nav">
-      <router-link v-for="route in routes" :key="route.name" :to="route.path" class="nav-link">
-        {{ route.name }}
-      </router-link>
+      <RouterLink class="nav-link" to="/race">Race</RouterLink>
+      <RouterLink class="nav-link" to="/series">Series</RouterLink>
+      <RouterLink class="nav-link" to="/boat">Boat</RouterLink>
+
+      <div class="dropdown" role="group" aria-label="Classes">
+        <button class="dropbtn" type="button">Classes</button>
+        <div class="dropdown-content">
+          <RouterLink class="dropdown-link" to="/boat-class">Boat classes</RouterLink>
+          <RouterLink class="dropdown-link" to="/race-class">Race classes</RouterLink>
+        </div>
+      </div>
     </nav>
+
     <nav v-if="breadcrumbs.length > 0" class="breadcrumb-nav">
       <template v-for="(item, index) in breadcrumbs" :key="item.path">
-        <router-link :class="{ last: item.isLast }" :to="item.path" class="breadcrumb-link">
+        <RouterLink :class="{ last: item.isLast }" :to="item.path" class="breadcrumb-link">
           {{ item.name }}
-        </router-link>
+        </RouterLink>
         <span v-if="index < breadcrumbs.length - 1" class="separator">/</span>
       </template>
     </nav>
@@ -52,8 +73,9 @@ const breadcrumbs = computed(() => {
 <style scoped>
 .main-nav {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 1rem;
   background-color: var(--color-background-soft);
   border-bottom: 1px solid var(--color-border);
@@ -62,22 +84,55 @@ const breadcrumbs = computed(() => {
   z-index: 1000;
 }
 
-.nav-link {
+.nav-link,
+.dropbtn,
+.dropdown-link {
   text-decoration: none;
   color: var(--color-text);
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   text-transform: capitalize;
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-  color: hsla(160, 100%, 37%, 1);
 }
 
 .nav-link.router-link-active {
   color: hsla(160, 100%, 37%, 1);
-  font-weight: bold;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  min-width: 180px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.4rem;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-link {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+}
+
+.dropdown-link:hover {
+  background: hsla(160, 100%, 37%, 0.15);
 }
 
 .breadcrumb-nav {
@@ -85,29 +140,21 @@ const breadcrumbs = computed(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: var(--color-background);
-  font-size: 0.9rem;
   border-bottom: 1px solid var(--color-border);
+  background-color: #ffffff;
 }
 
 .breadcrumb-link {
+  color: #000000;
   text-decoration: none;
-  color: var(--color-text);
-  text-transform: capitalize;
-}
-
-.breadcrumb-link:hover:not(.last) {
-  text-decoration: underline;
-  color: hsla(160, 100%, 37%, 1);
 }
 
 .breadcrumb-link.last {
-  opacity: 0.6;
+  opacity: 0.75;
   pointer-events: none;
-  font-weight: bold;
 }
 
 .separator {
-  color: var(--color-border);
+  color: #000000;
 }
 </style>

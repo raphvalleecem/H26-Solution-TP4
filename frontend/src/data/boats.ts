@@ -1,43 +1,44 @@
 export type BoatRow = {
   id: number
-  nom: string
-  classe: string
-  numeroVoile: string
-  barreur: string
+  name: string
+  sailNumber: number
+  helmName: string
+  boatClassId: number
 }
 
 export const boats: BoatRow[] = [
-  { id: 1, nom: 'Aurore', classe: 'Laser', numeroVoile: 'QC-1042', barreur: 'Yohan Tremblay' },
-  { id: 2, nom: 'Vent du Nord', classe: '470', numeroVoile: 'QC-2287', barreur: "Mhamma-D'Aout Doursaille" },
-  { id: 3, nom: 'Ecume Bleue', classe: 'Finn', numeroVoile: 'QC-3310', barreur: 'Raphaelle Valle' },
-  { id: 4, nom: 'Horizon', classe: 'J/24', numeroVoile: 'QC-4475', barreur: 'Eloi Foley' },
-  { id: 5, nom: 'Nereide', classe: 'Optimist', numeroVoile: 'QC-5098', barreur: 'Lea Fortin' },
-  { id: 6, nom: 'Mistral', classe: 'Catamaran', numeroVoile: 'QC-6124', barreur: 'Antoine Desrosiers' },
-  { id: 7, nom: 'Alize', classe: 'ILCA 7', numeroVoile: 'QC-7031', barreur: 'Noah Bouchard' },
-  { id: 8, nom: 'Boreal', classe: '29er', numeroVoile: 'QC-8199', barreur: 'Emma Cote' },
-  { id: 9, nom: 'Ondine', classe: '420', numeroVoile: 'QC-9051', barreur: 'Liam Gagnon' },
-  { id: 10, nom: 'Grand Large', classe: 'J/22', numeroVoile: 'QC-9184', barreur: 'Mila Roy' },
-  { id: 11, nom: 'Cap Horn', classe: 'Star', numeroVoile: 'QC-9220', barreur: 'Nathan Dube' },
-  { id: 12, nom: 'Sirocco', classe: '420', numeroVoile: 'QC-9343', barreur: 'Sarah Nadeau' },
-  { id: 13, nom: 'Zephyr', classe: 'ILCA 6', numeroVoile: 'QC-9477', barreur: 'Olivier Pelletier' },
-  { id: 14, nom: 'Brise Marine', classe: '470', numeroVoile: 'QC-9512', barreur: 'Alice Beaudoin' },
-  { id: 15, nom: 'Neptune', classe: 'Finn', numeroVoile: 'QC-9638', barreur: 'Thomas Gauthier' },
-  { id: 16, nom: 'Aigle des Mers', classe: 'J/24', numeroVoile: 'QC-9774', barreur: 'Juliette Martin' },
-  { id: 17, nom: 'Skylark', classe: 'Optimist', numeroVoile: 'QC-9829', barreur: 'Jacob Caron' },
-  { id: 18, nom: 'Azur', classe: '29er', numeroVoile: 'QC-9955', barreur: 'Clara Morin' },
-  { id: 19, nom: 'Tempete Douce', classe: 'Catamaran', numeroVoile: 'QC-1008', barreur: 'Leo Girard' },
-  { id: 20, nom: 'Solstice', classe: 'Laser', numeroVoile: 'QC-1126', barreur: 'Eva Plante' },
-  { id: 21, nom: 'Beluga', classe: 'ILCA 7', numeroVoile: 'QC-1241', barreur: 'Alexis Cormier' },
-  { id: 22, nom: 'Marlin', classe: 'J/22', numeroVoile: 'QC-1397', barreur: 'Florence Lavoie' },
-  { id: 23, nom: 'Goeland', classe: '420', numeroVoile: 'QC-1450', barreur: 'Charles Proulx' },
-  { id: 24, nom: 'Lueur', classe: 'Star', numeroVoile: 'QC-1583', barreur: 'Zoe Bernier' },
-  { id: 25, nom: 'Galatee', classe: '470', numeroVoile: 'QC-1669', barreur: 'William Fortier' },
-  { id: 26, nom: 'Maree Haute', classe: 'Finn', numeroVoile: 'QC-1714', barreur: 'Camille Blais' },
-  { id: 27, nom: 'Polaire', classe: 'J/24', numeroVoile: 'QC-1842', barreur: 'Henri Simard' },
-  { id: 28, nom: 'Rubis', classe: 'Optimist', numeroVoile: 'QC-1960', barreur: 'Maya Parent' },
+  { id: 1, name: 'Boat 1', sailNumber: 2001, helmName: 'Helm 1', boatClassId: 1 },
+  { id: 2, name: 'Boat 2', sailNumber: 2002, helmName: 'Helm 2', boatClassId: 2 },
+  { id: 3, name: 'Boat 3', sailNumber: 2003, helmName: 'Helm 3', boatClassId: 3 },
+  { id: 4, name: 'Boat 4', sailNumber: 2004, helmName: 'Helm 4', boatClassId: 4 },
+  { id: 5, name: 'Boat 5', sailNumber: 2005, helmName: 'Helm 5', boatClassId: 5 },
+  { id: 6, name: 'Boat 6', sailNumber: 2006, helmName: 'Helm 6', boatClassId: 6 },
+  { id: 7, name: 'Boat 7', sailNumber: 2007, helmName: 'Helm 7', boatClassId: 7 },
+  { id: 8, name: 'Boat 8', sailNumber: 2008, helmName: 'Helm 8', boatClassId: 8 },
+  { id: 9, name: 'Boat 9', sailNumber: 2009, helmName: 'Helm 9', boatClassId: 9 },
+  { id: 10, name: 'Boat 10', sailNumber: 2010, helmName: 'Helm 10', boatClassId: 10 },
+  { id: 11, name: 'Boat 11', sailNumber: 2011, helmName: 'Helm 11', boatClassId: 11 },
+  { id: 12, name: 'Boat 12', sailNumber: 2012, helmName: 'Helm 12', boatClassId: 12 },
+  { id: 13, name: 'Boat 13', sailNumber: 2013, helmName: 'Helm 13', boatClassId: 1 },
+  { id: 14, name: 'Boat 14', sailNumber: 2014, helmName: 'Helm 14', boatClassId: 2 },
+  { id: 15, name: 'Boat 15', sailNumber: 2015, helmName: 'Helm 15', boatClassId: 3 },
+  { id: 16, name: 'Boat 16', sailNumber: 2016, helmName: 'Helm 16', boatClassId: 4 },
+  { id: 17, name: 'Boat 17', sailNumber: 2017, helmName: 'Helm 17', boatClassId: 5 },
+  { id: 18, name: 'Boat 18', sailNumber: 2018, helmName: 'Helm 18', boatClassId: 6 },
+  { id: 19, name: 'Boat 19', sailNumber: 2019, helmName: 'Helm 19', boatClassId: 7 },
+  { id: 20, name: 'Boat 20', sailNumber: 2020, helmName: 'Helm 20', boatClassId: 8 },
+  { id: 21, name: 'Boat 21', sailNumber: 2021, helmName: 'Helm 21', boatClassId: 9 },
+  { id: 22, name: 'Boat 22', sailNumber: 2022, helmName: 'Helm 22', boatClassId: 10 },
+  { id: 23, name: 'Boat 23', sailNumber: 2023, helmName: 'Helm 23', boatClassId: 11 },
+  { id: 24, name: 'Boat 24', sailNumber: 2024, helmName: 'Helm 24', boatClassId: 12 },
+  { id: 25, name: 'Boat 25', sailNumber: 2025, helmName: 'Helm 25', boatClassId: 1 },
+  { id: 26, name: 'Boat 26', sailNumber: 2026, helmName: 'Helm 26', boatClassId: 2 },
+  { id: 27, name: 'Boat 27', sailNumber: 2027, helmName: 'Helm 27', boatClassId: 3 },
+  { id: 28, name: 'Boat 28', sailNumber: 2028, helmName: 'Helm 28', boatClassId: 4 },
+  { id: 29, name: 'Boat 29', sailNumber: 2029, helmName: 'Helm 29', boatClassId: 5 },
+  { id: 30, name: 'Boat 30', sailNumber: 2030, helmName: 'Helm 30', boatClassId: 6 },
 ]
 
 export function findBoatById(id: number): BoatRow | undefined {
   return boats.find((boat) => boat.id === id)
 }
-

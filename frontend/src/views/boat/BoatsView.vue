@@ -1,53 +1,59 @@
 <script lang="ts" setup>
-import ListBoats from '../../components/ListBoats.vue'
+import { RouterLink } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
+import { boatClasses } from '../../data/boatClasses'
 import { boats } from '../../data/boats'
+import { handicapTypes } from '../../data/handicapTypes'
 
 DataTable.use(DataTablesCore)
+
+function getBoatClass(boatClassId: number) {
+  return boatClasses.find((item) => item.id === boatClassId)
+}
+
+function getHandicapName(handicapTypeId: number): string {
+  return handicapTypes.find((item) => item.id === handicapTypeId)?.name ?? '-'
+}
 </script>
 
 <template>
-  <main>
-    <ListBoats />
-    <h1>List Boats</h1>
-    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'boat-create' }">
-      Create
-    </RouterLink>
-    <p :style="{ marginTop: '10px'}"></p>
-    <DataTable class="table table-striped table-bordered">
+  <main class="container mt-3">
+    <h1>Boats</h1>
+    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'boat-create' }">Create</RouterLink>
+
+    <DataTable class="table table-striped table-bordered mt-3">
       <thead>
         <tr>
-          <th>Boat name</th>
-          <th>Boat class</th>
+          <th>#</th>
+          <th>Name</th>
           <th>Sail number</th>
           <th>Helm name</th>
+          <th>Boat class</th>
+          <th>Handicap</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="boat in boats" :key="boat.id">
-          <td>{{ boat.nom }}</td>
-          <td>{{ boat.classe }}</td>
-          <td>{{ boat.numeroVoile }}</td>
-          <td>{{ boat.barreur }}</td>
-          <td class="text-nowrap">
-            <RouterLink
-              class="btn btn-sm btn-secondary mr-2"
-              :to="{ name: 'boat-edit', params: { id: String(boat.id) } }"
-            >
-              Edit
+          <td>{{ boat.id }}</td>
+          <td>{{ boat.name }}</td>
+          <td>{{ boat.sailNumber }}</td>
+          <td>{{ boat.helmName }}</td>
+          <td>
+            <RouterLink :to="`/boat-class/${boat.boatClassId}`">
+              {{ getBoatClass(boat.boatClassId)?.name ?? '-' }}
             </RouterLink>
-            <RouterLink
-              class="btn btn-sm btn-danger"
-              :to="{ name: 'boat-delete', params: { id: String(boat.id) } }"
-            >
-              Delete
-            </RouterLink>
+          </td>
+          <td>
+            {{ getBoatClass(boat.boatClassId)?.handicapValue ?? '-' }}
+            {{ getHandicapName(getBoatClass(boat.boatClassId)?.handicapTypeId ?? 0) }}
+          </td>
+          <td>
+            <RouterLink class="btn btn-sm btn-secondary" :to="`/boat/${boat.id}`">Details</RouterLink>
           </td>
         </tr>
       </tbody>
     </DataTable>
   </main>
 </template>
-

@@ -1,9 +1,16 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { raceClasses } from '../data/classes'
-import type { RaceRow } from '../data/races'
+import { raceClasses } from '../data/raceClasses'
 
-type RaceFormPayload = Omit<RaceRow, 'id'>
+type RaceFormPayload = {
+  name: string
+  date: string
+  startTime: string
+  course: string
+  raceClassId: number
+  seriesId?: number
+  isCompleted?: boolean
+}
 
 const props = withDefaults(
   defineProps<{
@@ -18,6 +25,8 @@ const props = withDefaults(
       startTime: '',
       course: '',
       raceClassId: 1,
+      seriesId: 1,
+      isCompleted: false,
     }),
   },
 )
@@ -73,4 +82,3 @@ function onSubmit() {
     </form>
   </section>
 </template>
-

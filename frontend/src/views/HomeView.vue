@@ -1,26 +1,26 @@
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
+const topTiles = [
+  { label: 'Race', path: '/race' },
+  { label: 'Series', path: '/series' },
+]
 
-const router = useRouter()
-const homeRouteOrder = ['race', 'entry', 'series', 'boat', 'class'] as const
-const routesByName = new Map(router.getRoutes().map((route) => [String(route.name), route]))
-const routes = homeRouteOrder
-  .map((routeName) => routesByName.get(routeName))
-  .filter((route): route is NonNullable<typeof route> => Boolean(route))
-const topRoutes = routes.slice(0, 2)
-const bottomRoutes = routes.slice(2, 5)
+const bottomTiles = [
+  { label: 'Boat', path: '/boat' },
+  { label: 'Boat classes', path: '/boat-class' },
+  { label: 'Race classes', path: '/race-class' },
+]
 </script>
 
 <template>
   <main class="home-container">
     <div class="tile-row">
-      <router-link v-for="route in topRoutes" :key="route.name" :to="route.path" class="tile">
-        {{ route.name }}
+      <router-link v-for="tile in topTiles" :key="tile.path" :to="tile.path" class="tile">
+        {{ tile.label }}
       </router-link>
     </div>
     <div class="tile-row">
-      <router-link v-for="route in bottomRoutes" :key="route.name" :to="route.path" class="tile">
-        {{ route.name }}
+      <router-link v-for="tile in bottomTiles" :key="tile.path" :to="tile.path" class="tile">
+        {{ tile.label }}
       </router-link>
     </div>
   </main>
@@ -36,35 +36,39 @@ const bottomRoutes = routes.slice(2, 5)
   width: 100%;
   margin: 0 auto;
   flex: 1;
+
+  /* Garde un contraste stable (texte fonce sur tuiles claires), meme en dark mode OS */
+  --tile-bg-color: hsl(160 70% 92%);
+  --tile-bg-hover-color: hsl(160 70% 86%);
+  --tile-text-color: #1f2937;
 }
 
 .tile-row {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1rem;
   width: 100%;
   margin: 0 auto;
 }
 
 .tile {
   flex: 1;
-  min-height: 250px;
+  min-height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: hsla(160, 100%, 37%, 0.1);
+  background-color: var(--tile-bg-color);
   border: 2px solid hsla(160, 100%, 37%, 1);
   border-radius: 12px;
   text-decoration: none;
-  color: var(--color-text);
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-transform: capitalize;
+  color: var(--tile-text-color);
+  font-size: 1.35rem;
+  font-weight: 700;
   transition: all 0.3s ease;
 }
 
 .tile:hover {
-  background-color: hsla(160, 100%, 37%, 0.2);
+  background-color: var(--tile-bg-hover-color);
   transform: translateY(-5px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

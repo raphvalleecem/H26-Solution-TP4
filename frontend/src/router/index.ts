@@ -20,34 +20,14 @@ const router = createRouter({
       component: () => import('../views/race/RaceCreateView.vue'),
     },
     {
-      path: '/race/edit/:id',
-      name: 'race-edit',
-      component: () => import('../views/race/RaceEditView.vue'),
-    },
-    {
       path: '/race/delete/:id',
       name: 'race-delete',
       component: () => import('../views/race/RaceDeleteView.vue'),
     },
     {
-      path: '/entry',
-      name: 'entry',
-      component: () => import('../views/entry/EntryView.vue'),
-    },
-    {
-      path: '/entry/create',
-      name: 'entry-create',
-      component: () => import('../views/entry/EntryCreateView.vue'),
-    },
-    {
-      path: '/entry/edit/:id',
-      name: 'entry-edit',
-      component: () => import('../views/entry/EntryEditView.vue'),
-    },
-    {
-      path: '/entry/delete/:id',
-      name: 'entry-delete',
-      component: () => import('../views/entry/EntryDeleteView.vue'),
+      path: '/race/:id',
+      name: 'race-details',
+      component: () => import('../views/race/RaceDetailView.vue'),
     },
     {
       path: '/series',
@@ -60,14 +40,14 @@ const router = createRouter({
       component: () => import('../views/series/SeriesCreateView.vue'),
     },
     {
-      path: '/series/edit/:id',
-      name: 'series-edit',
-      component: () => import('../views/series/SeriesEditView.vue'),
-    },
-    {
       path: '/series/delete/:id',
       name: 'series-delete',
       component: () => import('../views/series/SeriesDeleteView.vue'),
+    },
+    {
+      path: '/series/:id',
+      name: 'series-details',
+      component: () => import('../views/series/SeriesDetailView.vue'),
     },
     {
       path: '/boat',
@@ -80,34 +60,54 @@ const router = createRouter({
       component: () => import('../views/boat/BoatCreateView.vue'),
     },
     {
-      path: '/boat/edit/:id',
-      name: 'boat-edit',
-      component: () => import('../views/boat/BoatEditView.vue'),
-    },
-    {
       path: '/boat/delete/:id',
       name: 'boat-delete',
       component: () => import('../views/boat/BoatDeleteView.vue'),
     },
     {
-      path: '/class',
-      name: 'class',
-      component: () => import('../views/class/ClassView.vue'),
+      path: '/boat/:id',
+      name: 'boat-details',
+      component: () => import('../views/boat/BoatDetailView.vue'),
     },
     {
-      path: '/class/create',
-      name: 'class-create',
-      component: () => import('../views/class/ClassCreateView.vue'),
+      path: '/boat-class',
+      name: 'boat-class',
+      component: () => import('../views/boat-class/BoatClassView.vue'),
     },
     {
-      path: '/class/edit/:id',
-      name: 'class-edit',
-      component: () => import('../views/class/ClassEditView.vue'),
+      path: '/boat-class/create',
+      name: 'boat-class-create',
+      component: () => import('../views/boat-class/BoatClassCreateView.vue'),
     },
     {
-      path: '/class/delete/:id',
-      name: 'class-delete',
-      component: () => import('../views/class/ClassDeleteView.vue'),
+      path: '/boat-class/delete/:id',
+      name: 'boat-class-delete',
+      component: () => import('../views/boat-class/BoatClassDeleteView.vue'),
+    },
+    {
+      path: '/boat-class/:id',
+      name: 'boat-class-details',
+      component: () => import('../views/boat-class/BoatClassDetailView.vue'),
+    },
+    {
+      path: '/race-class',
+      name: 'race-class',
+      component: () => import('../views/race-class/RaceClassView.vue'),
+    },
+    {
+      path: '/race-class/create',
+      name: 'race-class-create',
+      component: () => import('../views/race-class/RaceClassCreateView.vue'),
+    },
+    {
+      path: '/race-class/delete/:id',
+      name: 'race-class-delete',
+      component: () => import('../views/race-class/RaceClassDeleteView.vue'),
+    },
+    {
+      path: '/race-class/:id',
+      name: 'race-class-details',
+      component: () => import('../views/race-class/RaceClassDetailView.vue'),
     },
   ],
 })

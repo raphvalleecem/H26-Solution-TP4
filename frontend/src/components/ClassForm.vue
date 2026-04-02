@@ -1,9 +1,16 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { handicapTypes, raceClassTypes } from '../data/classes'
-import type { RaceClassRow } from '../data/classes'
+import { handicapTypes } from '../data/handicapTypes'
+import { raceClassTypes } from '../data/raceClassTypes'
 
-type ClassFormPayload = Omit<RaceClassRow, 'id'>
+type ClassFormPayload = {
+  name: string
+  minHandicap: number
+  maxHandicap: number
+  handicapTypeId: number
+  raceClassTypeId: number
+  boatClassId?: number
+}
 
 const props = withDefaults(
   defineProps<{
@@ -75,4 +82,3 @@ function onSubmit() {
     </form>
   </section>
 </template>
-
