@@ -3,9 +3,9 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boats } from '../../data/boats'
+import { boats, type BoatRow } from '../../data/boats'
 import { raceEntries } from '../../data/raceEntries'
-import { raceOutcomes } from '../../data/raceOutcomes'
+import { raceOutcomes, type RaceOutcomeResult, type RaceOutcomeRow } from '../../data/raceOutcomes'
 import { raceClasses } from '../../data/raceClasses'
 import { findRaceById } from '../../data/races'
 import { seriesRows } from '../../data/series'
@@ -72,9 +72,62 @@ const seriesName = computed(() => {
 })
 
 type EntryDisplayRow = {
-  boat: (typeof boats)[number]
-  outcome: (typeof raceOutcomes)[number] | undefined
+  rowKey: string
+  entryId?: number
+  boatId: number
+  boat: BoatRow
+  outcome: RaceOutcomeRow | undefined
   source: 'saved' | 'temp'
+}
+
+type LocalOutcomeDraft = {
+  result: RaceOutcomeResult
+  position?: number
+  finishTime?: string
+  elapsedTime?: number
+  correctedTime?: number
+}
+
+type EntryModalDraft = {
+  boatId: number | null
+  result: RaceOutcomeResult
+  position: string
+  finishTime: string
+  elapsedTime: string
+  correctedTime: string
+}
+
+const removedEntryIds = ref<number[]>([])
+const editedOutcomes = ref<Record<string, LocalOutcomeDraft>>({})
+const isEntryModalOpen = ref(false)
+const editingRowKey = ref<string | null>(null)
+const modalError = ref('')
+const resultOptions: RaceOutcomeResult[] = ['', 'DNS', 'OCS', 'DNF', 'RTD', 'DSQ']
+
+const entryModalDraft = reactive<EntryModalDraft>({
+  boatId: null,
+  result: '',
+  position: '',
+  finishTime: '',
+  elapsedTime: '',
+  correctedTime: '',
+})
+
+function mergeOutcome(base: RaceOutcomeRow | undefined, rowKey: string, entryId?: number): RaceOutcomeRow | undefined {
+  const edited = editedOutcomes.value[rowKey]
+  if (!edited) {
+    return base
+  }
+
+  return {
+    id: base?.id ?? -1,
+    raceEntryId: base?.raceEntryId ?? entryId ?? -1,
+    result: edited.result,
+    position: edited.position,
+    finishTime: edited.finishTime,
+    elapsedTime: edited.elapsedTime,
+    correctedTime: edited.correctedTime,
+  }
 }
 
 const allBoatRows = computed<EntryDisplayRow[]>(() => {
@@ -83,8 +136,11 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
   }
 
   const base = raceEntries
-    .filter((entry) => entry.raceId === race.value!.id)
+    .filter((entry) => entry.raceId === race.value!.id && !removedEntryIds.value.includes(entry.id))
     .map((entry) => ({
+      rowKey: `saved-${entry.id}`,
+      entryId: entry.id,
+      boatId: entry.boatId,
       boat: boats.find((row) => row.id === entry.boatId),
       outcome: raceOutcomes.find((row) => row.raceEntryId === entry.id),
       source: 'saved' as const,
@@ -93,16 +149,29 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
       (
         row,
       ): row is {
-        boat: (typeof boats)[number]
-        outcome: (typeof raceOutcomes)[number] | undefined
+        rowKey: string
+        entryId: number
+        boatId: number
+        boat: BoatRow
+        outcome: RaceOutcomeRow | undefined
         source: 'saved'
       } => Boolean(row.boat),
     )
+    .map((row) => ({
+      ...row,
+      outcome: mergeOutcome(row.outcome, row.rowKey, row.entryId),
+    }))
 
   const added = addedBoatIds.value
     .map((boatId) => boats.find((row) => row.id === boatId))
     .filter((boat): boat is (typeof boats)[number] => Boolean(boat))
-    .map((boat) => ({ boat, outcome: undefined, source: 'temp' as const }))
+    .map((boat) => ({
+      rowKey: `temp-${boat.id}`,
+      boatId: boat.id,
+      boat,
+      outcome: mergeOutcome(undefined, `temp-${boat.id}`),
+      source: 'temp' as const,
+    }))
 
   return [...base, ...added]
 })
@@ -139,6 +208,65 @@ function addEntry() {
     addedBoatIds.value.push(selectedBoatId.value)
   }
   selectedBoatId.value = null
+}
+
+function toNumberOrUndefined(value: string): number | undefined {
+  const normalized = value.trim()
+  if (!normalized) {
+    return undefined
+  }
+  const parsed = Number(normalized)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+
+function openEntryModal(row: EntryDisplayRow) {
+  editingRowKey.value = row.rowKey
+  entryModalDraft.boatId = row.boatId
+  entryModalDraft.result = row.outcome?.result ?? ''
+  entryModalDraft.position = row.outcome?.position != null ? String(row.outcome.position) : ''
+  entryModalDraft.finishTime = row.outcome?.finishTime ?? ''
+  entryModalDraft.elapsedTime = row.outcome?.elapsedTime != null ? String(row.outcome.elapsedTime) : ''
+  entryModalDraft.correctedTime = row.outcome?.correctedTime != null ? String(row.outcome.correctedTime) : ''
+  modalError.value = ''
+  isEntryModalOpen.value = true
+}
+
+function closeEntryModal() {
+  isEntryModalOpen.value = false
+  editingRowKey.value = null
+  modalError.value = ''
+}
+
+function saveEntryModal() {
+  if (!editingRowKey.value) {
+    return
+  }
+
+  editedOutcomes.value[editingRowKey.value] = {
+    result: entryModalDraft.result,
+    position: toNumberOrUndefined(entryModalDraft.position),
+    finishTime: entryModalDraft.finishTime.trim() || undefined,
+    elapsedTime: toNumberOrUndefined(entryModalDraft.elapsedTime),
+    correctedTime: toNumberOrUndefined(entryModalDraft.correctedTime),
+  }
+
+  closeEntryModal()
+}
+
+function removeEntry(row: EntryDisplayRow) {
+  if (row.source === 'saved' && row.entryId != null && !removedEntryIds.value.includes(row.entryId)) {
+    removedEntryIds.value.push(row.entryId)
+  }
+
+  if (row.source === 'temp') {
+    addedBoatIds.value = addedBoatIds.value.filter((boatId) => boatId !== row.boatId)
+  }
+
+  delete editedOutcomes.value[row.rowKey]
+
+  if (editingRowKey.value === row.rowKey) {
+    closeEntryModal()
+  }
 }
 </script>
 
@@ -231,10 +359,11 @@ function addEntry() {
             <th v-if="form.isCompleted">Finish time</th>
             <th v-if="form.isCompleted">Elapsed time</th>
             <th v-if="form.isCompleted">Corrected time</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in allBoatRows" :key="`${row.boat.id}-${row.source}`">
+          <tr v-for="row in allBoatRows" :key="row.rowKey">
             <td>
               <RouterLink :to="`/boat/${row.boat.id}`">{{ row.boat.name }}</RouterLink>
             </td>
@@ -243,6 +372,12 @@ function addEntry() {
             <td v-if="form.isCompleted">{{ row.outcome?.finishTime ?? '-' }}</td>
             <td v-if="form.isCompleted">{{ row.outcome?.elapsedTime ?? '-' }}</td>
             <td v-if="form.isCompleted">{{ row.outcome?.correctedTime ?? '-' }}</td>
+            <td>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primary" type="button" @click="openEntryModal(row)">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" @click="removeEntry(row)">Remove</button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </DataTable>
@@ -259,6 +394,66 @@ function addEntry() {
           <button class="btn btn-outline-primary" type="button" @click="addEntry">Add</button>
         </div>
       </div>
+
+      <div v-if="isEntryModalOpen" class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Edit entry result</h5>
+              <button class="close" type="button" aria-label="Close" @click="closeEntryModal">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div v-if="modalError" class="alert alert-danger py-2">{{ modalError }}</div>
+
+              <div class="form-group">
+                <label>Boat</label>
+                <input
+                  :value="boats.find((boat) => boat.id === entryModalDraft.boatId)?.name ?? '-'"
+                  class="form-control"
+                  readonly
+                  type="text"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Result</label>
+                <select v-model="entryModalDraft.result" class="form-control">
+                  <option v-for="option in resultOptions" :key="option || 'empty'" :value="option">
+                    {{ option || '-' }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Position</label>
+                <input v-model="entryModalDraft.position" class="form-control" min="1" type="number" />
+              </div>
+
+              <div class="form-group">
+                <label>Finish time</label>
+                <input v-model="entryModalDraft.finishTime" class="form-control" type="datetime-local" />
+              </div>
+
+              <div class="form-group">
+                <label>Elapsed time</label>
+                <input v-model="entryModalDraft.elapsedTime" class="form-control" min="0" step="1" type="number" />
+              </div>
+
+              <div class="form-group">
+                <label>Corrected time</label>
+                <input v-model="entryModalDraft.correctedTime" class="form-control" min="0" step="1" type="number" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="button" @click="saveEntryModal">Save</button>
+              <button class="btn btn-outline-secondary" type="button" @click="closeEntryModal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="isEntryModalOpen" class="modal-backdrop fade show"></div>
     </div>
   </section>
 </template>
