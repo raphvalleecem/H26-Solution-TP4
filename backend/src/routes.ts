@@ -23,7 +23,6 @@ router.post('/boat', upload.none(), async (req: Request, res: Response) => {
 
         let boat: Boat = new Boat();
         boat.name = name;
-        boat.imageUrl = `https://placehold.co/600x400/orange/white/?text=${encodeURIComponent(boat.name)}`;
 
         await getProvider().addBoat(boat);
 
