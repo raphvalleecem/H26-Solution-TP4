@@ -10,6 +10,7 @@ export class FetchProvider {
         return boats || [];
     }
 
+
     public async addBoat(boat: Boat): Promise<void> {
         await AppDataSource.manager.insert(Boat, boat);
         await AppDataSource.manager.save(boat);
@@ -39,6 +40,13 @@ export class FetchProvider {
         if (missing.length > 0) {
             await AppDataSource.manager.save(HandicapType, missing);
         }
+    }
+
+    public async getBoatClasses(): Promise<BoatClass[]> {
+        const boatClasses = await AppDataSource.manager.find(BoatClass, {
+            relations: ["handicapType"],
+        });
+        return boatClasses || [];
     }
 
     //#endregion

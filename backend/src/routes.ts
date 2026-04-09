@@ -11,6 +11,13 @@ router.get('/boats', async (req: Request, res: Response) => {
     res.json(await getProvider().getBoats());
 });
 
+const getBoatClassesHandler = async (req: Request, res: Response) => {
+    res.json(await getProvider().getBoatClasses());
+};
+
+router.get('/boat-classes', getBoatClassesHandler);
+router.get('/boat-class', getBoatClassesHandler);
+
 router.post('/boat', upload.none(), async (req: Request, res: Response) => {
     try {
         console.log(req.body);
