@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import {Boat, BoatClass, HandicapType} from "../entity/entities";
+import {Boat, BoatClass, HandicapType, Race, RaceClass, Series} from "../entity/entities";
 import {AppDataSource} from "../data-source";
 
 export class FetchProvider {
@@ -27,7 +27,7 @@ export class FetchProvider {
     public async ensureDefaultHandicapTypes(): Promise<void> {
         const requiredNames = ["PY", "TMF"];
         const handicapTypes = await AppDataSource.manager.find(HandicapType);
-        const existingNames = new Set(handicapTypes.map((ht) => ht.name));
+        const existingNames = new Set(handicapTypes.map((ht: HandicapType) => ht.name));
 
         const missing = requiredNames
             .filter((name) => !existingNames.has(name))
@@ -52,8 +52,32 @@ export class FetchProvider {
     //#endregion
 
     //#region Races
+    public async getRaces(): Promise<Race[]> {
+        const races = await AppDataSource.manager.find(Race, {
+            relations: ["raceClass", "series"],
+        });
+        return races || [];
+    }
 
+    public async getRaceClassById(id: number): Promise<RaceClass | null> {
+        return await AppDataSource.manager.findOneBy(RaceClass, {id});
+    }
 
+    public async getSeriesById(id: number): Promise<Series | null> {
+        return await AppDataSource.manager.findOne(Series, {
+            where: {id},
+            relations: ["raceClass"],
+        });
+    }
+
+    public async addRace(race: Race): Promise<Race> {
+        const savedRace = await AppDataSource.manager.save(Race, race);
+
+        return await AppDataSource.manager.findOneOrFail(Race, {
+            where: {id: savedRace.id},
+            relations: ["raceClass", "series"],
+        });
+    }
 
     //#endregion
 }
