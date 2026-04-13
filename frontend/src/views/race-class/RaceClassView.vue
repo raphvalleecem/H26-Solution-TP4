@@ -1,23 +1,78 @@
 <script lang="ts" setup>
-import { RouterLink } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
 import { boatClasses } from '../../data/boatClasses'
 import { handicapTypes } from '../../data/handicapTypes'
-import { raceClasses } from '../../data/raceClasses'
-import { raceClassTypes } from '../../data/raceClassTypes'
+import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
 
 DataTable.use(DataTablesCore)
+
+const raceClasses = ref<RaceClass[]>([])
+
+onMounted(async () => {
+  raceClasses.value = await getRaceClasses()
+})
+
+const columns = [
+  { data: 'id', title: '#' },
+  { data: 'name', title: 'Name' },
+  {
+    data: 'raceClassTypeId',
+    title: 'RaceClassType',
+    render: (id: number) => 'ExempleType',
+  },
+  {
+    data: null,
+    title: 'Handicap range',
+    render: (data: RaceClass) => `${data.minHandicap ?? '-'} - ${data.maxHandicap ?? '-'}`,
+  },
+  {
+    data: 'handicapTypeId',
+    title: 'Handicap type',
+    render: (id?: number) => getHandicapTypeName(id),
+  },
+  {
+    data: 'boatClassId',
+    title: 'Monotype boat class',
+    render: (id?: number) => {
+      if (!id) return '-'
+      const name = getBoatClassName(id)
+      return `<a href="/boat-class/${id}" class="boat-class-link" data-id="${id}">${name}</a>`
+    },
+  },
+  {
+    data: null,
+    title: 'Actions',
+    render: (data: RaceClass) => {
+      return `<a href="/race-class/${data.id}" class="btn btn-sm btn-secondary race-class-details" data-id="${data.id}">Details</a>`
+    },
+    orderable: false,
+    searchable: false,
+  },
+]
+
+const router = useRouter()
+
+function handleTableClick(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (target.classList.contains('boat-class-link')) {
+    event.preventDefault()
+    const id = target.getAttribute('data-id')
+    router.push(`/boat-class/${id}`)
+  } else if (target.classList.contains('race-class-details')) {
+    event.preventDefault()
+    const id = target.getAttribute('data-id')
+    router.push(`/race-class/${id}`)
+  }
+}
 
 function getHandicapTypeName(id?: number): string {
   if (!id) {
     return '-'
   }
   return handicapTypes.find((item) => item.id === id)?.name ?? `#${id}`
-}
-
-function getRaceClassTypeName(id: number): string {
-  return raceClassTypes.find((item) => item.id === id)?.name ?? `#${id}`
 }
 
 function getBoatClassName(id?: number): string {
@@ -31,39 +86,15 @@ function getBoatClassName(id?: number): string {
 <template>
   <main class="container mt-3">
     <h1>Race classes</h1>
-    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'race-class-create' }">Create</RouterLink>
+    <RouterLink :to="{ name: 'race-class-create' }" class="btn btn-sm btn-primary mr-2"
+      >Create</RouterLink
+    >
 
-    <DataTable class="table table-striped table-bordered mt-3">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Handicap range</th>
-          <th>Handicap type</th>
-          <th>Monotype boat class</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in raceClasses" :key="item.id">
-          <td>{{ item.id }}</td>
-          <td>{{ item.name }}</td>
-          <td>{{ getRaceClassTypeName(item.raceClassTypeId) }}</td>
-          <td>{{ item.minHandicap ?? '-' }} - {{ item.maxHandicap ?? '-' }}</td>
-          <td>{{ getHandicapTypeName(item.handicapTypeId) }}</td>
-          <td>
-            <RouterLink v-if="item.boatClassId" :to="`/boat-class/${item.boatClassId}`">
-              {{ getBoatClassName(item.boatClassId) }}
-            </RouterLink>
-            <span v-else>-</span>
-          </td>
-          <td>
-            <RouterLink class="btn btn-sm btn-secondary" :to="`/race-class/${item.id}`">Details</RouterLink>
-          </td>
-        </tr>
-      </tbody>
-    </DataTable>
+    <DataTable
+      :columns="columns"
+      :data="raceClasses"
+      class="table table-striped table-bordered mt-3"
+      @click="handleTableClick"
+    />
   </main>
 </template>
-

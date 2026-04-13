@@ -30,14 +30,14 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  submit: [value: ClassFormPayload]
+  'submit-class': [value: ClassFormPayload]
   cancel: []
 }>()
 
 const form = reactive<ClassFormPayload>({ ...props.initialValue })
 
 function onSubmit() {
-  emit('submit', { ...form })
+  emit('submit-class', { ...form })
 }
 </script>
 
@@ -53,31 +53,56 @@ function onSubmit() {
 
       <div class="form-group">
         <label for="min-handicap">Min handicap</label>
-        <input id="min-handicap" v-model.number="form.minHandicap" class="form-control" required type="number" step="0.01" />
+        <input
+          id="min-handicap"
+          v-model.number="form.minHandicap"
+          class="form-control"
+          required
+          step="0.01"
+          type="number"
+        />
       </div>
 
       <div class="form-group">
         <label for="max-handicap">Max handicap</label>
-        <input id="max-handicap" v-model.number="form.maxHandicap" class="form-control" required type="number" step="0.01" />
+        <input
+          id="max-handicap"
+          v-model.number="form.maxHandicap"
+          class="form-control"
+          required
+          step="0.01"
+          type="number"
+        />
       </div>
 
       <div class="form-group">
         <label for="handicap-type">Handicap type</label>
-        <select id="handicap-type" v-model.number="form.handicapTypeId" class="form-control" required>
-          <option v-for="type in handicapTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
+        <select
+          id="handicap-type"
+          v-model.number="form.handicapTypeId"
+          class="form-control"
+          required
+        >
+          <option v-for="type in handicapTypes" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </option>
         </select>
       </div>
 
       <div class="form-group">
         <label for="class-type">Race class type</label>
         <select id="class-type" v-model.number="form.raceClassTypeId" class="form-control" required>
-          <option v-for="type in raceClassTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
+          <option v-for="type in raceClassTypes" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </option>
         </select>
       </div>
 
       <div class="d-flex">
         <button class="btn btn-primary mr-2" type="submit">{{ submitLabel }}</button>
-        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">Cancel</button>
+        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
+          Cancel
+        </button>
       </div>
     </form>
   </section>

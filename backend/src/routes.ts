@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 import {FetchProvider} from "./data/fetch-provider.service";
-import {Boat, BoatClass, Race} from "./entity/entities";
+import {Boat, BoatClass, Race, RaceClass} from "./entity/entities";
 import multer from "multer";
 
 const router = Router();
@@ -11,6 +11,36 @@ router.get('/boats', async (req: Request, res: Response) => {
     try {
         const boats = await getProvider().getBoats();
         res.json(boats);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.get('/race-class', async (req: Request, res: Response) => {
+    try {
+        const raceClass = await getProvider().getRaceClass();
+        res.json(raceClass);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.post('/race-class', upload.none(), async (req: Request, res: Response) => {
+    try {
+        console.log(req.body);
+
+        const body = req.body;
+
+        if (!body) {
+            return res.status(400).json({error: "Body is required"});
+        }
+
+        let raceClass: RaceClass;
+        raceClass = body;
+
+        await getProvider().addRaceClass(raceClass);
+
+        res.status(201).json({message: "RaceClass created successfully", raceClass});
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }

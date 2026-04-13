@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 import ClassForm from '../../components/ClassForm.vue'
-import { addRaceClass } from '../../data/raceClasses'
+import { addRaceClass } from '@/data/raceClasses'
 
 const router = useRouter()
 
-function createClass(payload: {
+async function createClass(payload: {
   name: string
   minHandicap: number
   maxHandicap: number
   handicapTypeId: number
   raceClassTypeId: number
 }) {
-  addRaceClass(payload)
+  await addRaceClass(payload)
   router.push({ name: 'race-class' })
 }
 
@@ -22,6 +22,10 @@ function cancel() {
 </script>
 
 <template>
-  <ClassForm title="Create race class" submit-label="Create" @submit="createClass" @cancel="cancel" />
+  <ClassForm
+    submit-label="Create"
+    title="Create race class"
+    @cancel="cancel"
+    @submit-class="createClass"
+  />
 </template>
-

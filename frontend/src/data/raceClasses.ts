@@ -1,4 +1,6 @@
-export type RaceClassRow = {
+import axios from 'axios'
+
+export type RaceClass = {
   id: number
   name: string
   minHandicap?: number
@@ -8,7 +10,7 @@ export type RaceClassRow = {
   boatClassId?: number
 }
 
-export const raceClasses: RaceClassRow[] = [
+export const raceClasses: RaceClass[] = [
   { id: 1, name: 'Race class 1', raceClassTypeId: 1, boatClassId: 1 },
   { id: 2, name: 'Race class 2', raceClassTypeId: 1, boatClassId: 2 },
   { id: 3, name: 'Race class 3', raceClassTypeId: 1, boatClassId: 3 },
@@ -65,18 +67,31 @@ export const raceClasses: RaceClassRow[] = [
   },
 ]
 
-export function findRaceClassById(id: number): RaceClassRow | undefined {
+export async function getRaceClasses(): Promise<RaceClass[]> {
+  try {
+    const response = await axios.get<RaceClass[]>('http://localhost:3000/race-class')
+    console.log(response)
+    return response.data
+  } catch (error) {
+    console.error('Error:', error)
+    return []
+  }
+}
+
+export function findRaceClassById(id: number): RaceClass | undefined {
   return raceClasses.find((row) => row.id === id)
 }
 
-export function addRaceClass(payload: Omit<RaceClassRow, 'id'>): RaceClassRow {
-  const nextId = Math.max(0, ...raceClasses.map((row) => row.id)) + 1
-  const row: RaceClassRow = { id: nextId, ...payload }
-  raceClasses.push(row)
-  return row
+export async function addRaceClass(payload: Omit<RaceClass, 'id'>): Promise<void> {
+  try {
+    const response = await axios.post('http://localhost:3000/race-class', payload)
+    console.log('Success:', response.data)
+  } catch (error) {
+    console.error('Error:', error)
+  }
 }
 
-export function updateRaceClass(id: number, payload: Omit<RaceClassRow, 'id'>): boolean {
+export function updateRaceClass(id: number, payload: Omit<RaceClass, 'id'>): boolean {
   const index = raceClasses.findIndex((row) => row.id === id)
   if (index < 0) {
     return false

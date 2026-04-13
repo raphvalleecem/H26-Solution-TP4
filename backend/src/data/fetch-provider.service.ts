@@ -12,6 +12,16 @@ export class FetchProvider {
         return boats || [];
     }
 
+    public async getRaceClass(): Promise<RaceClass[]> {
+        const raceClass = await AppDataSource.manager.find(RaceClass, {
+            relations: {
+                raceClassType: true,
+                handicapType: true,
+            },
+        });
+        return raceClass || [];
+    }
+
 
     public async addBoat(boat: Boat): Promise<Boat> {
         return await AppDataSource.manager.save(Boat, boat);
@@ -27,6 +37,10 @@ export class FetchProvider {
 
     public async addBoatClass(boatClass: BoatClass): Promise<BoatClass> {
         return await AppDataSource.manager.save(BoatClass, boatClass);
+    }
+
+    public async addRaceClass(raceClass: RaceClass): Promise<RaceClass> {
+        return await AppDataSource.manager.save(RaceClass, raceClass);
     }
 
     public async ensureDefaultHandicapTypes(): Promise<void> {
