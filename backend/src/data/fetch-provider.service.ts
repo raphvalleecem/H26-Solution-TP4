@@ -6,14 +6,19 @@ export class FetchProvider {
 
     //#region Boats
     public async getBoats(): Promise<Boat[]> {
-        const boats = await AppDataSource.manager.find(Boat);
+        const boats = await AppDataSource.manager.find(Boat, {
+            relations: ["boatClass", "boatClass.handicapType"],
+        });
         return boats || [];
     }
 
 
-    public async addBoat(boat: Boat): Promise<void> {
-        await AppDataSource.manager.insert(Boat, boat);
-        await AppDataSource.manager.save(boat);
+    public async addBoat(boat: Boat): Promise<Boat> {
+        return await AppDataSource.manager.save(Boat, boat);
+    }
+
+    public async getBoatClassById(id: number): Promise<BoatClass | null> {
+        return await AppDataSource.manager.findOneBy(BoatClass, {id});
     }
 
     public async getHandicapTypeById(id: number): Promise<HandicapType | null> {

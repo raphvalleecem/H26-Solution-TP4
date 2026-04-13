@@ -8,8 +8,55 @@ const upload = multer({storage: multer.memoryStorage()});
 let fetchProvider: FetchProvider;
 
 router.get('/boats', async (req: Request, res: Response) => {
-    res.json(await getProvider().getBoats());
+    try {
+        const boats = await getProvider().getBoats();
+        res.json(boats);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
 });
+
+const createBoatHandler = async (req: Request, res: Response) => {
+    try {
+        const {name, sailNumber, helmName, boatClassId} = req.body;
+
+        if (!name || !String(name).trim()) {
+            return res.status(400).json({error: "Name is required"});
+        }
+
+        let parsedSailNumber = 0;
+        if (sailNumber !== undefined && sailNumber !== null && String(sailNumber).trim() !== "") {
+            parsedSailNumber = Number(sailNumber);
+            if (Number.isNaN(parsedSailNumber)) {
+                return res.status(400).json({error: "sailNumber must be a number"});
+            }
+        }
+
+        const boat = new Boat();
+        boat.name = String(name).trim();
+        boat.sailNumber = parsedSailNumber;
+        boat.helmName = helmName ? String(helmName).trim() : "";
+
+        if (boatClassId !== undefined && boatClassId !== null && String(boatClassId).trim() !== "") {
+            const parsedBoatClassId = Number(boatClassId);
+            if (Number.isNaN(parsedBoatClassId)) {
+                return res.status(400).json({error: "boatClassId must be a number"});
+            }
+
+            const boatClass = await getProvider().getBoatClassById(parsedBoatClassId);
+            if (!boatClass) {
+                return res.status(404).json({error: "BoatClass not found"});
+            }
+
+            boat.boatClass = boatClass;
+        }
+
+        const createdBoat = await getProvider().addBoat(boat);
+        res.status(201).json({message: "Boat created successfully", boat: createdBoat});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+};
 
 const getBoatClassesHandler = async (req: Request, res: Response) => {
     res.json(await getProvider().getBoatClasses());
@@ -21,26 +68,8 @@ router.get('/races', async (req: Request, res: Response) => {
     res.json(await getProvider().getRaces());
 });
 
-router.post('/boat', upload.none(), async (req: Request, res: Response) => {
-    try {
-        console.log(req.body);
-
-        const {name} = req.body;
-
-        if (!name) {
-            return res.status(400).json({error: "Name is required"});
-        }
-
-        let boat: Boat = new Boat();
-        boat.name = name;
-
-        await getProvider().addBoat(boat);
-
-        res.status(201).json({message: "Boat created successfully", boat});
-    } catch (error) {
-        res.status(500).json({error: "Internal Server Error"});
-    }
-});
+router.post('/boats', upload.none(), createBoatHandler);
+router.post('/boat', upload.none(), createBoatHandler);
 
 router.post('/boat-class', upload.none(), async (req: Request, res: Response) => {
     try {
