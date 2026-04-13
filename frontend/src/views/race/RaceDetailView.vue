@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boats, type BoatRow } from '../../data/boats'
+import { type BoatRow, boats } from '../../data/boats'
 import { raceEntries } from '../../data/raceEntries'
-import { raceOutcomes, type RaceOutcomeResult, type RaceOutcomeRow } from '../../data/raceOutcomes'
-import { raceClasses } from '../../data/raceClasses'
+import { type RaceOutcomeResult, type RaceOutcomeRow, raceOutcomes } from '../../data/raceOutcomes'
+import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
 import { findRaceById } from '../../data/races'
-import { seriesRows } from '../../data/series'
+import { getSeries, type SeriesRow } from '../../data/series'
 
 DataTable.use(DataTablesCore)
 
@@ -25,6 +25,14 @@ type RaceForm = {
 const route = useRoute()
 const raceId = computed(() => Number.parseInt(String(route.params.id), 10))
 const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)))
+
+const raceClasses = ref<RaceClass[]>([])
+const seriesRows = ref<SeriesRow[]>([])
+
+onMounted(async () => {
+  raceClasses.value = await getRaceClasses()
+  seriesRows.value = await getSeries()
+})
 
 const isEditing = ref(false)
 const addedBoatIds = ref<number[]>([])
@@ -64,11 +72,11 @@ const hasChanges = computed(() => {
 })
 
 const raceClassName = computed(() => {
-  return raceClasses.find((item) => item.id === form.raceClassId)?.name ?? '-'
+  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-'
 })
 
 const seriesName = computed(() => {
-  return seriesRows.find((item) => item.id === form.seriesId)?.name ?? '-'
+  return seriesRows.value.find((item) => item.id === form.seriesId)?.name ?? '-'
 })
 
 type EntryDisplayRow = {
@@ -113,7 +121,11 @@ const entryModalDraft = reactive<EntryModalDraft>({
   correctedTime: '',
 })
 
-function mergeOutcome(base: RaceOutcomeRow | undefined, rowKey: string, entryId?: number): RaceOutcomeRow | undefined {
+function mergeOutcome(
+  base: RaceOutcomeRow | undefined,
+  rowKey: string,
+  entryId?: number,
+): RaceOutcomeRow | undefined {
   const edited = editedOutcomes.value[rowKey]
   if (!edited) {
     return base
@@ -225,8 +237,10 @@ function openEntryModal(row: EntryDisplayRow) {
   entryModalDraft.result = row.outcome?.result ?? ''
   entryModalDraft.position = row.outcome?.position != null ? String(row.outcome.position) : ''
   entryModalDraft.finishTime = row.outcome?.finishTime ?? ''
-  entryModalDraft.elapsedTime = row.outcome?.elapsedTime != null ? String(row.outcome.elapsedTime) : ''
-  entryModalDraft.correctedTime = row.outcome?.correctedTime != null ? String(row.outcome.correctedTime) : ''
+  entryModalDraft.elapsedTime =
+    row.outcome?.elapsedTime != null ? String(row.outcome.elapsedTime) : ''
+  entryModalDraft.correctedTime =
+    row.outcome?.correctedTime != null ? String(row.outcome.correctedTime) : ''
   modalError.value = ''
   isEntryModalOpen.value = true
 }
@@ -254,7 +268,11 @@ function saveEntryModal() {
 }
 
 function removeEntry(row: EntryDisplayRow) {
-  if (row.source === 'saved' && row.entryId != null && !removedEntryIds.value.includes(row.entryId)) {
+  if (
+    row.source === 'saved' &&
+    row.entryId != null &&
+    !removedEntryIds.value.includes(row.entryId)
+  ) {
     removedEntryIds.value.push(row.entryId)
   }
 
@@ -285,22 +303,36 @@ function removeEntry(row: EntryDisplayRow) {
           </tr>
           <tr>
             <th>Name</th>
-            <td><input v-model="form.name" class="form-control" :readonly="!isEditing" type="text" /></td>
+            <td>
+              <input v-model="form.name" :readonly="!isEditing" class="form-control" type="text" />
+            </td>
           </tr>
           <tr>
             <th>Date</th>
-            <td><input v-model="form.date" class="form-control" :readonly="!isEditing" type="date" /></td>
+            <td>
+              <input v-model="form.date" :readonly="!isEditing" class="form-control" type="date" />
+            </td>
           </tr>
           <tr>
             <th>Start time</th>
             <td>
-              <input v-model="form.startTime" class="form-control" :readonly="!isEditing" type="time" />
+              <input
+                v-model="form.startTime"
+                :readonly="!isEditing"
+                class="form-control"
+                type="time"
+              />
             </td>
           </tr>
           <tr>
             <th>Course</th>
             <td>
-              <input v-model="form.course" class="form-control" :readonly="!isEditing" type="text" />
+              <input
+                v-model="form.course"
+                :readonly="!isEditing"
+                class="form-control"
+                type="text"
+              />
             </td>
           </tr>
           <tr>
@@ -310,16 +342,22 @@ function removeEntry(row: EntryDisplayRow) {
                 {{ raceClassName }}
               </RouterLink>
               <select v-else v-model.number="form.raceClassId" class="form-control">
-                <option v-for="item in raceClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in raceClasses" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
           <tr>
             <th>Series</th>
             <td>
-              <RouterLink v-if="!isEditing" :to="`/series/${form.seriesId}`">{{ seriesName }}</RouterLink>
+              <RouterLink v-if="!isEditing" :to="`/series/${form.seriesId}`">{{
+                seriesName
+              }}</RouterLink>
               <select v-else v-model.number="form.seriesId" class="form-control">
-                <option v-for="item in seriesRows" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in seriesRows" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -333,7 +371,9 @@ function removeEntry(row: EntryDisplayRow) {
       </table>
 
       <div class="d-flex gap-2 mb-3">
-        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">Edit</button>
+        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">
+          Edit
+        </button>
         <button
           v-else
           class="btn btn-primary"
@@ -343,7 +383,12 @@ function removeEntry(row: EntryDisplayRow) {
         >
           Save changes
         </button>
-        <button v-if="isEditing" class="btn btn-outline-secondary" type="button" @click="cancelEdit">
+        <button
+          v-if="isEditing"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="cancelEdit"
+        >
           Cancel
         </button>
         <RouterLink class="btn btn-danger" :to="`/race/delete/${race.id}`">Delete</RouterLink>
@@ -374,8 +419,16 @@ function removeEntry(row: EntryDisplayRow) {
             <td v-if="form.isCompleted">{{ row.outcome?.correctedTime ?? '-' }}</td>
             <td>
               <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-primary" type="button" @click="openEntryModal(row)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" type="button" @click="removeEntry(row)">Remove</button>
+                <button class="btn btn-sm btn-primary" type="button" @click="openEntryModal(row)">
+                  Edit
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  type="button"
+                  @click="removeEntry(row)"
+                >
+                  Remove
+                </button>
               </div>
             </td>
           </tr>
@@ -428,27 +481,50 @@ function removeEntry(row: EntryDisplayRow) {
 
               <div class="form-group">
                 <label>Position</label>
-                <input v-model="entryModalDraft.position" class="form-control" min="1" type="number" />
+                <input
+                  v-model="entryModalDraft.position"
+                  class="form-control"
+                  min="1"
+                  type="number"
+                />
               </div>
 
               <div class="form-group">
                 <label>Finish time</label>
-                <input v-model="entryModalDraft.finishTime" class="form-control" type="datetime-local" />
+                <input
+                  v-model="entryModalDraft.finishTime"
+                  class="form-control"
+                  type="datetime-local"
+                />
               </div>
 
               <div class="form-group">
                 <label>Elapsed time</label>
-                <input v-model="entryModalDraft.elapsedTime" class="form-control" min="0" step="1" type="number" />
+                <input
+                  v-model="entryModalDraft.elapsedTime"
+                  class="form-control"
+                  min="0"
+                  step="1"
+                  type="number"
+                />
               </div>
 
               <div class="form-group">
                 <label>Corrected time</label>
-                <input v-model="entryModalDraft.correctedTime" class="form-control" min="0" step="1" type="number" />
+                <input
+                  v-model="entryModalDraft.correctedTime"
+                  class="form-control"
+                  min="0"
+                  step="1"
+                  type="number"
+                />
               </div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-primary" type="button" @click="saveEntryModal">Save</button>
-              <button class="btn btn-outline-secondary" type="button" @click="closeEntryModal">Cancel</button>
+              <button class="btn btn-outline-secondary" type="button" @click="closeEntryModal">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -457,5 +533,3 @@ function removeEntry(row: EntryDisplayRow) {
     </div>
   </section>
 </template>
-
-

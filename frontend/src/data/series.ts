@@ -22,6 +22,17 @@ export const seriesRows: SeriesRow[] = [
   { id: 12, name: 'Serie 12', nbRaces: 2, nbRacesToCount: 1, raceClassId: 12, isCompleted: false },
 ]
 
+export async function getSeries(): Promise<any[]> {
+  // try {
+  //   const response = await axios.get<SeriesRow[]>('http://localhost:3000/series')
+  //   return response.data
+  // } catch (error) {
+  //   console.error('Error:', error)
+  //   return []
+  // }
+  return [{ id: 1, name: 'SerieTest' }]
+}
+
 export function findSeriesById(id: number): SeriesRow | undefined {
   return seriesRows.find((row) => row.id === id)
 }

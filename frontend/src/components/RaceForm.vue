@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { raceClasses } from '../data/raceClasses'
+import type { RaceClass } from '../data/raceClasses'
+import type { SeriesRow } from '../data/series'
 
 type RaceFormPayload = {
   name: string
@@ -8,7 +9,7 @@ type RaceFormPayload = {
   startTime: string
   course: string
   raceClassId: number
-  seriesId?: number
+  seriesId: number
   isCompleted?: boolean
 }
 
@@ -17,6 +18,8 @@ const props = withDefaults(
     title: string
     submitLabel: string
     initialValue?: RaceFormPayload
+    raceClasses: RaceClass[]
+    seriesRows: SeriesRow[]
   }>(),
   {
     initialValue: () => ({
@@ -60,24 +63,49 @@ function onSubmit() {
 
       <div class="form-group">
         <label for="race-start-time">Start time</label>
-        <input id="race-start-time" v-model="form.startTime" class="form-control" required type="time" />
+        <input
+          id="race-start-time"
+          v-model="form.startTime"
+          class="form-control"
+          required
+          type="time"
+        />
       </div>
 
       <div class="form-group">
         <label for="race-course">Course</label>
-        <input id="race-course" v-model.trim="form.course" class="form-control" required type="text" />
+        <input
+          id="race-course"
+          v-model.trim="form.course"
+          class="form-control"
+          required
+          type="text"
+        />
       </div>
 
       <div class="form-group">
         <label for="race-class-id">Race class</label>
         <select id="race-class-id" v-model.number="form.raceClassId" class="form-control" required>
-          <option v-for="item in raceClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+          <option v-for="item in raceClasses" :key="item.id" :value="item.id">
+            {{ item.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="series-id">Series</label>
+        <select id="series-id" v-model.number="form.seriesId" class="form-control" required>
+          <option v-for="item in seriesRows" :key="item.id" :value="item.id">
+            {{ item.name }}
+          </option>
         </select>
       </div>
 
       <div class="d-flex">
         <button class="btn btn-primary mr-2" type="submit">{{ submitLabel }}</button>
-        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">Cancel</button>
+        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
+          Cancel
+        </button>
       </div>
     </form>
   </section>

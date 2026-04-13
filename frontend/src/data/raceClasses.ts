@@ -70,7 +70,6 @@ export const raceClasses: RaceClass[] = [
 export async function getRaceClasses(): Promise<RaceClass[]> {
   try {
     const response = await axios.get<RaceClass[]>('http://localhost:3000/race-class')
-    console.log(response)
     return response.data
   } catch (error) {
     console.error('Error:', error)

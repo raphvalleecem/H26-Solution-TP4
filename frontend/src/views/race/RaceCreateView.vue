@@ -1,19 +1,30 @@
 <script lang="ts" setup>
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import RaceForm from '../../components/RaceForm.vue'
 import { addRace } from '../../data/races'
+import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
+import { getSeries, type SeriesRow } from '../../data/series'
 
 const router = useRouter()
+const raceClasses = ref<RaceClass[]>([])
+const seriesRows = ref<SeriesRow[]>([])
 
-function createRace(payload: {
+onMounted(async () => {
+  raceClasses.value = await getRaceClasses()
+  seriesRows.value = await getSeries()
+})
+
+async function createRace(payload: {
   name: string
   date: string
   startTime: string
   course: string
   raceClassId: number
+  seriesId: number
 }) {
-  addRace(payload)
-  router.push({ name: 'race' })
+  await addRace(payload)
+  await router.push({ name: 'race' })
 }
 
 function cancel() {
@@ -22,6 +33,12 @@ function cancel() {
 </script>
 
 <template>
-  <RaceForm title="Create race" submit-label="Create" @submit="createRace" @cancel="cancel" />
+  <RaceForm
+    :race-classes="raceClasses"
+    :series-rows="seriesRows"
+    submit-label="Create"
+    title="Create race"
+    @cancel="cancel"
+    @submit="createRace"
+  />
 </template>
-

@@ -3,9 +3,9 @@ import { onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '../../data/boatClasses'
-import { handicapTypes } from '../../data/handicapTypes'
-import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
+import { boatClasses } from '@/data/boatClasses.ts'
+import { handicapTypes } from '@/data/handicapTypes.ts'
+import { getRaceClasses, type RaceClass } from '@/data/raceClasses.ts'
 
 DataTable.use(DataTablesCore)
 
