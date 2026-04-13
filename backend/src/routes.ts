@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 import {FetchProvider} from "./data/fetch-provider.service";
-import {Boat, BoatClass, Race} from "./entity/entities";
+import {Boat, BoatClass} from "./entity/entities";
 import multer from "multer";
 
 const router = Router();
@@ -17,9 +17,6 @@ const getBoatClassesHandler = async (req: Request, res: Response) => {
 
 router.get('/boat-classes', getBoatClassesHandler);
 router.get('/boat-class', getBoatClassesHandler);
-router.get('/races', async (req: Request, res: Response) => {
-    res.json(await getProvider().getRaces());
-});
 
 router.post('/boat', upload.none(), async (req: Request, res: Response) => {
     try {
@@ -79,73 +76,6 @@ router.post('/boat-class', upload.none(), async (req: Request, res: Response) =>
         const createdBoatClass = await getProvider().addBoatClass(boatClass);
 
         res.status(201).json({message: "BoatClass created successfully", boatClass: createdBoatClass});
-    } catch (error) {
-        res.status(500).json({error: "Internal Server Error"});
-    }
-});
-
-router.post('/race', upload.none(), async (req: Request, res: Response) => {
-    try {
-        const {name, startTime, course, raceClassId, seriesId} = req.body;
-
-        if (!name || !String(name).trim()) {
-            return res.status(400).json({error: "Name is required"});
-        }
-
-        if (!startTime) {
-            return res.status(400).json({error: "startTime is required"});
-        }
-
-        if (!course || !String(course).trim()) {
-            return res.status(400).json({error: "course is required"});
-        }
-
-        if (raceClassId === undefined || raceClassId === null) {
-            return res.status(400).json({error: "raceClassId is required"});
-        }
-
-        if (seriesId === undefined || seriesId === null) {
-            return res.status(400).json({error: "seriesId is required"});
-        }
-
-        const parsedStartTime = new Date(startTime);
-        const parsedRaceClassId = Number(raceClassId);
-        const parsedSeriesId = Number(seriesId);
-
-        if (Number.isNaN(parsedStartTime.getTime())) {
-            return res.status(400).json({error: "startTime must be a valid date"});
-        }
-
-        if (Number.isNaN(parsedRaceClassId)) {
-            return res.status(400).json({error: "raceClassId must be a number"});
-        }
-
-        if (Number.isNaN(parsedSeriesId)) {
-            return res.status(400).json({error: "seriesId must be a number"});
-        }
-
-        const raceClass = await getProvider().getRaceClassById(parsedRaceClassId);
-
-        if (!raceClass) {
-            return res.status(404).json({error: "RaceClass not found"});
-        }
-
-        const series = await getProvider().getSeriesById(parsedSeriesId);
-
-        if (!series) {
-            return res.status(404).json({error: "Series not found"});
-        }
-
-        const race = new Race();
-        race.name = String(name).trim();
-        race.startTime = parsedStartTime;
-        race.course = String(course).trim();
-        race.raceClass = raceClass;
-        race.series = series;
-
-        const createdRace = await getProvider().addRace(race);
-
-        res.status(201).json({message: "Race created successfully", race: createdRace});
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
