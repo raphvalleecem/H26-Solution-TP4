@@ -22,7 +22,7 @@ export class BoatClass {
     @Column()
     handicapValue: number = 0;
 
-    @ManyToOne(() => HandicapType, (handicapType) => handicapType.id)
+    @ManyToOne(() => HandicapType)
     handicapType!: HandicapType;
 }
 
@@ -41,7 +41,7 @@ export class Boat {
     @Column()
     helmName: string = "";
 
-    @ManyToOne(() => BoatClass, (boatClass) => boatClass.id)
+    @ManyToOne(() => BoatClass)
     boatClass!: BoatClass;
 }
 
@@ -70,11 +70,30 @@ export class RaceClass {
     @Column()
     maxHandicap: number = 0;
 
-    @ManyToOne(() => HandicapType, (handicapType) => handicapType.id)
+    @ManyToOne(() => HandicapType)
     handicapType!: HandicapType;
 
-    @ManyToOne(() => RaceClassType, (raceClassType) => raceClassType.id)
+    @ManyToOne(() => RaceClassType)
     raceClassType!: RaceClassType;
+}
+
+@Entity()
+export class Series {
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    name: string = "";
+
+    @Column()
+    nbRaces: number = 0;
+
+    @Column()
+    nbRacesToCount: number = 0;
+
+    @ManyToOne(() => RaceClass)
+    raceClass!: RaceClass;
 }
 
 @Entity()
@@ -92,8 +111,11 @@ export class Race {
     @Column()
     course: string = "";
 
-    @ManyToOne(() => RaceClass, (raceClass) => raceClass.id)
+    @ManyToOne(() => RaceClass)
     raceClass!: RaceClass;
+
+    @ManyToOne(() => Series)
+    series!: Series;
 }
 
 @Entity()
@@ -102,10 +124,10 @@ export class RaceEntry {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => Boat, (boat) => boat.id)
+    @ManyToOne(() => Boat)
     boat!: Boat;
 
-    @ManyToOne(() => Race, (race) => race.id)
+    @ManyToOne(() => Race)
     race!: Race;
 }
 
@@ -130,6 +152,6 @@ export class RaceOutcome {
     @Column()
     correctedTime: number = 0;
 
-    @OneToOne(() => RaceEntry, (raceEntry) => raceEntry.id)
+    @OneToOne(() => RaceEntry)
     raceEntry!: RaceEntry;
 }
