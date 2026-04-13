@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { boatClasses } from '../data/boatClasses'
 
 type BoatFormPayload = {
   name: string
@@ -9,11 +8,18 @@ type BoatFormPayload = {
   helmName: string
 }
 
+type BoatClassOption = {
+  id: number
+  name: string
+}
+
 const props = withDefaults(
   defineProps<{
     title: string
     submitLabel: string
     initialValue?: BoatFormPayload
+    boatClasses: BoatClassOption[]
+    isSubmitting?: boolean
   }>(),
   {
     initialValue: () => ({
@@ -22,6 +28,7 @@ const props = withDefaults(
       sailNumber: 2000,
       helmName: '',
     }),
+    isSubmitting: false,
   },
 )
 
@@ -55,7 +62,7 @@ function onSubmit() {
       <div class="form-group">
         <label for="boat-class">Boat class</label>
         <select id="boat-class" v-model.number="form.boatClassId" class="form-control" required>
-          <option v-for="item in boatClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+          <option v-for="item in props.boatClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
         </select>
       </div>
 
@@ -70,8 +77,12 @@ function onSubmit() {
       </div>
 
       <div class="d-flex">
-        <button class="btn btn-primary mr-2" type="submit">{{ submitLabel }}</button>
-        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">Cancel</button>
+        <button class="btn btn-primary mr-2" :disabled="props.isSubmitting" type="submit">
+          {{ props.isSubmitting ? 'Creating...' : submitLabel }}
+        </button>
+        <button class="btn btn-outline-secondary" :disabled="props.isSubmitting" type="button" @click="emit('cancel')">
+          Cancel
+        </button>
       </div>
     </form>
   </section>
