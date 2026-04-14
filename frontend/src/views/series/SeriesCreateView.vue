@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 import SeriesForm from '../../components/SeriesForm.vue'
-import { addSeries } from '../../data/series'
+import { addSeries } from '@/models/series.ts'
 
 const router = useRouter()
 
@@ -21,6 +21,5 @@ function cancel() {
 </script>
 
 <template>
-  <SeriesForm title="Create series" submit-label="Create" @submit="createSeries" @cancel="cancel" />
+  <SeriesForm submit-label="Create" title="Create series" @cancel="cancel" @submit="createSeries" />
 </template>
-

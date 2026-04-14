@@ -3,16 +3,16 @@ import { onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
-import { getRaces, type RaceRow } from '../../data/races'
-import { getSeries, type SeriesRow } from '../../data/series'
+import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts'
+import { getRaces, type Race } from '@/models/races.ts'
+import { getSeries, type Series } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
 const router = useRouter()
-const races = ref<RaceRow[]>([])
+const races = ref<Race[]>([])
 const raceClasses = ref<RaceClass[]>([])
-const seriesRows = ref<SeriesRow[]>([])
+const seriesRows = ref<Series[]>([])
 
 onMounted(async () => {
   races.value = await getRaces()
@@ -45,7 +45,7 @@ const columns = [
   {
     data: null,
     title: 'Actions',
-    render: (data: RaceRow) => {
+    render: (data: Race) => {
       return `<a href="/race/${data.id}" class="btn btn-sm btn-secondary race-details" data-id="${data.id}">Details</a>`
     },
     orderable: false,

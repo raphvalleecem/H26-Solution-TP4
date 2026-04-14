@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import { handicapTypes } from '../data/handicapTypes'
-import { raceClassTypes } from '../data/raceClassTypes'
+import { handicapTypes } from '../models/handicapTypes'
+import { raceClassTypes } from '../models/raceClassTypes'
 
 type ClassFormPayload = {
   name: string

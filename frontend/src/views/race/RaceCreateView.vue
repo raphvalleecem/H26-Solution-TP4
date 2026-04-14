@@ -2,13 +2,13 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import RaceForm from '../../components/RaceForm.vue'
-import { addRace } from '../../data/races'
-import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
-import { getSeries, type SeriesRow } from '../../data/series'
+import { addRace } from '@/models/races.ts'
+import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts'
+import { getSeries, type Series } from '@/models/series.ts'
 
 const router = useRouter()
 const raceClasses = ref<RaceClass[]>([])
-const seriesRows = ref<SeriesRow[]>([])
+const seriesRows = ref<Series[]>([])
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses()

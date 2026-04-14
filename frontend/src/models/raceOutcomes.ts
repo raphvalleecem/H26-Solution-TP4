@@ -1,6 +1,6 @@
 export type RaceOutcomeResult = 'DNS' | 'OCS' | 'DNF' | 'RTD' | 'DSQ' | ''
 
-export type RaceOutcomeRow = {
+export type RaceOutcome = {
   id: number
   result: RaceOutcomeResult
   position?: number
@@ -10,7 +10,7 @@ export type RaceOutcomeRow = {
   raceEntryId: number
 }
 
-export const raceOutcomes: RaceOutcomeRow[] = [
+export const raceOutcomes: RaceOutcome[] = [
   {
     id: 1,
     result: '',
@@ -45,7 +45,6 @@ export const raceOutcomes: RaceOutcomeRow[] = [
   },
 ]
 
-export function findRaceOutcomeByEntryId(raceEntryId: number): RaceOutcomeRow | undefined {
+export function findRaceOutcomeByEntryId(raceEntryId: number): RaceOutcome | undefined {
   return raceOutcomes.find((row) => row.raceEntryId === raceEntryId)
 }
-

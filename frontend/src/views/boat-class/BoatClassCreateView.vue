@@ -52,10 +52,11 @@ async function onCreate() {
 
   try {
     await axios.post('/boat-class', payload)
-    router.push({ name: 'boat-class' })
+    await router.push({ name: 'boat-class' })
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      errorMessage.value = getApiErrorMessage(error.response?.data) ?? 'Unable to create boat class. Please try again.'
+      errorMessage.value =
+        getApiErrorMessage(error.response?.data) ?? 'Unable to create boat class. Please try again.'
       return
     }
 
@@ -81,7 +82,13 @@ function onCancel() {
 
       <div class="form-group">
         <label for="boat-class-name">Name</label>
-        <input id="boat-class-name" v-model.trim="form.name" class="form-control" required type="text" />
+        <input
+          id="boat-class-name"
+          v-model.trim="form.name"
+          class="form-control"
+          required
+          type="text"
+        />
       </div>
 
       <div class="form-group">
@@ -98,19 +105,30 @@ function onCancel() {
 
       <div class="form-group">
         <label for="boat-class-handicap-type">Handicap type</label>
-        <select id="boat-class-handicap-type" v-model="form.handicapTypeId" class="form-control" required>
+        <select
+          id="boat-class-handicap-type"
+          v-model="form.handicapTypeId"
+          class="form-control"
+          required
+        >
           <option value="1">PY</option>
           <option value="2">TMF</option>
         </select>
       </div>
 
       <div class="d-flex">
-        <button class="btn btn-primary mr-2" :disabled="isSubmitting" type="submit">
+        <button :disabled="isSubmitting" class="btn btn-primary mr-2" type="submit">
           {{ isSubmitting ? 'Creating...' : 'Create' }}
         </button>
-        <button class="btn btn-outline-secondary" :disabled="isSubmitting" type="button" @click="onCancel">Cancel</button>
+        <button
+          :disabled="isSubmitting"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="onCancel"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   </section>
 </template>
-

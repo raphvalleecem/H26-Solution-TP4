@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { findRaceClassById } from '../../data/raceClasses'
+import { findRaceClassById } from '@/models/raceClasses.ts'
 
 const route = useRoute()
 const router = useRouter()
 
 const classId = computed(() => Number.parseInt(String(route.params.id), 10))
-const raceClass = computed(() => (Number.isNaN(classId.value) ? undefined : findRaceClassById(classId.value)))
+const raceClass = computed(() =>
+  Number.isNaN(classId.value) ? undefined : findRaceClassById(classId.value),
+)
 
 function confirmDelete() {
   router.push({ name: 'race-class' })
@@ -27,10 +29,10 @@ function confirmDelete() {
         <p class="text-danger">Prototype UX: confirmation returns to index only.</p>
 
         <button class="btn btn-danger mr-2" type="button" @click="confirmDelete">Delete</button>
-        <RouterLink class="btn btn-outline-secondary" :to="{ name: 'race-class' }">Cancel</RouterLink>
+        <RouterLink :to="{ name: 'race-class' }" class="btn btn-outline-secondary"
+          >Cancel</RouterLink
+        >
       </div>
     </div>
   </section>
 </template>
-
-

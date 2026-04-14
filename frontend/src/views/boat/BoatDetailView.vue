@@ -3,12 +3,12 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '../../data/boatClasses'
-import { findBoatById } from '../../data/boats'
-import { raceEntries } from '../../data/raceEntries'
-import { races } from '../../data/races'
-import { seriesEntries } from '../../data/seriesEntries'
-import { seriesRows } from '../../data/series'
+import { boatClasses } from '@/models/boatClasses.ts'
+import { findBoatById } from '@/models/boats.ts'
+import { raceEntries } from '@/models/raceEntries.ts'
+import { races } from '@/models/races.ts'
+import { seriesEntries } from '@/models/seriesEntries.ts'
+import { seriesRows } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -104,26 +104,42 @@ function saveChanges() {
           </tr>
           <tr>
             <th>Name</th>
-            <td><input v-model="form.name" class="form-control" :readonly="!isEditing" type="text" /></td>
+            <td>
+              <input v-model="form.name" :readonly="!isEditing" class="form-control" type="text" />
+            </td>
           </tr>
           <tr>
             <th>Sail number</th>
             <td>
-              <input v-model.number="form.sailNumber" class="form-control" :readonly="!isEditing" type="number" />
+              <input
+                v-model.number="form.sailNumber"
+                :readonly="!isEditing"
+                class="form-control"
+                type="number"
+              />
             </td>
           </tr>
           <tr>
             <th>Helm name</th>
             <td>
-              <input v-model="form.helmName" class="form-control" :readonly="!isEditing" type="text" />
+              <input
+                v-model="form.helmName"
+                :readonly="!isEditing"
+                class="form-control"
+                type="text"
+              />
             </td>
           </tr>
           <tr>
             <th>Boat class</th>
             <td>
-              <RouterLink v-if="!isEditing" :to="`/boat-class/${form.boatClassId}`">{{ boatClassName }}</RouterLink>
+              <RouterLink v-if="!isEditing" :to="`/boat-class/${form.boatClassId}`">{{
+                boatClassName
+              }}</RouterLink>
               <select v-else v-model.number="form.boatClassId" class="form-control">
-                <option v-for="item in boatClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in boatClasses" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -131,20 +147,27 @@ function saveChanges() {
       </table>
 
       <div class="d-flex gap-2 mb-3">
-        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">Edit</button>
+        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">
+          Edit
+        </button>
         <button
           v-else
-          class="btn btn-primary"
           :disabled="!hasChanges"
+          class="btn btn-primary"
           type="button"
           @click="saveChanges"
         >
           Save changes
         </button>
-        <button v-if="isEditing" class="btn btn-outline-secondary" type="button" @click="cancelEdit">
+        <button
+          v-if="isEditing"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="cancelEdit"
+        >
           Cancel
         </button>
-        <RouterLink class="btn btn-danger" :to="`/boat/delete/${boat.id}`">Delete</RouterLink>
+        <RouterLink :to="`/boat/delete/${boat.id}`" class="btn btn-danger">Delete</RouterLink>
       </div>
 
       <h2 class="h4 mt-4">Race entries</h2>
@@ -159,7 +182,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="race in raceList" :key="race.id">
             <td>{{ race.id }}</td>
-            <td><RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink>
+            </td>
             <td>{{ race.date }}</td>
           </tr>
         </tbody>
@@ -177,7 +202,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="seriesItem in seriesList" :key="seriesItem.id">
             <td>{{ seriesItem.id }}</td>
-            <td><RouterLink :to="`/series/${seriesItem.id}`">{{ seriesItem.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/series/${seriesItem.id}`">{{ seriesItem.name }}</RouterLink>
+            </td>
             <td>{{ seriesItem.nbRaces }}</td>
           </tr>
         </tbody>
@@ -185,4 +212,3 @@ function saveChanges() {
     </div>
   </section>
 </template>
-

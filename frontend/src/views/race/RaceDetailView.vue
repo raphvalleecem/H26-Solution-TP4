@@ -3,12 +3,11 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { type BoatRow, boats } from '../../data/boats'
-import { raceEntries } from '../../data/raceEntries'
-import { type RaceOutcomeResult, type RaceOutcomeRow, raceOutcomes } from '../../data/raceOutcomes'
-import { getRaceClasses, type RaceClass } from '../../data/raceClasses'
-import { findRaceById } from '../../data/races'
-import { getSeries, type SeriesRow } from '../../data/series'
+import { type Boat, boats } from '@/models/boats.ts'
+import { raceEntries } from '@/models/raceEntries.ts'
+import { type RaceOutcomeResult, type RaceOutcome, raceOutcomes } from '@/models/raceOutcomes.ts'
+import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts'
+import { getSeries, type Series } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -27,7 +26,7 @@ const raceId = computed(() => Number.parseInt(String(route.params.id), 10))
 const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)))
 
 const raceClasses = ref<RaceClass[]>([])
-const seriesRows = ref<SeriesRow[]>([])
+const seriesRows = ref<Series[]>([])
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses()
@@ -83,8 +82,8 @@ type EntryDisplayRow = {
   rowKey: string
   entryId?: number
   boatId: number
-  boat: BoatRow
-  outcome: RaceOutcomeRow | undefined
+  boat: Boat
+  outcome: RaceOutcome | undefined
   source: 'saved' | 'temp'
 }
 
@@ -122,10 +121,10 @@ const entryModalDraft = reactive<EntryModalDraft>({
 })
 
 function mergeOutcome(
-  base: RaceOutcomeRow | undefined,
+  base: RaceOutcome | undefined,
   rowKey: string,
   entryId?: number,
-): RaceOutcomeRow | undefined {
+): RaceOutcome | undefined {
   const edited = editedOutcomes.value[rowKey]
   if (!edited) {
     return base
@@ -164,8 +163,8 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
         rowKey: string
         entryId: number
         boatId: number
-        boat: BoatRow
-        outcome: RaceOutcomeRow | undefined
+        boat: Boat
+        outcome: RaceOutcome | undefined
         source: 'saved'
       } => Boolean(row.boat),
     )
@@ -376,8 +375,8 @@ function removeEntry(row: EntryDisplayRow) {
         </button>
         <button
           v-else
-          class="btn btn-primary"
           :disabled="!hasChanges"
+          class="btn btn-primary"
           type="button"
           @click="saveChanges"
         >
@@ -391,7 +390,7 @@ function removeEntry(row: EntryDisplayRow) {
         >
           Cancel
         </button>
-        <RouterLink class="btn btn-danger" :to="`/race/delete/${race.id}`">Delete</RouterLink>
+        <RouterLink :to="`/race/delete/${race.id}`" class="btn btn-danger">Delete</RouterLink>
       </div>
 
       <h2 class="h4 mt-4">Entries</h2>
@@ -448,12 +447,12 @@ function removeEntry(row: EntryDisplayRow) {
         </div>
       </div>
 
-      <div v-if="isEntryModalOpen" class="modal fade show d-block" tabindex="-1" role="dialog">
+      <div v-if="isEntryModalOpen" class="modal fade show d-block" role="dialog" tabindex="-1">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Edit entry result</h5>
-              <button class="close" type="button" aria-label="Close" @click="closeEntryModal">
+              <button aria-label="Close" class="close" type="button" @click="closeEntryModal">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>

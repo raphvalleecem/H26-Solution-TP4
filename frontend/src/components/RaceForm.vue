@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
-import type { RaceClass } from '../data/raceClasses'
-import type { SeriesRow } from '../data/series'
+import type { RaceClass } from '../models/raceClasses'
+import type { Series } from '../models/series'
 
 type RaceFormPayload = {
   name: string
@@ -19,7 +19,7 @@ const props = withDefaults(
     submitLabel: string
     initialValue?: RaceFormPayload
     raceClasses: RaceClass[]
-    seriesRows: SeriesRow[]
+    seriesRows: Series[]
   }>(),
   {
     initialValue: () => ({

@@ -1,10 +1,10 @@
-export type SeriesEntryRow = {
+export type SeriesEntry = {
   id: number
   boatId: number
   seriesId: number
 }
 
-export const seriesEntries: SeriesEntryRow[] = [
+export const seriesEntries: SeriesEntry[] = [
   { id: 1, boatId: 1, seriesId: 1 },
   { id: 2, boatId: 5, seriesId: 1 },
   { id: 3, boatId: 9, seriesId: 1 },
@@ -14,7 +14,6 @@ export const seriesEntries: SeriesEntryRow[] = [
   { id: 7, boatId: 7, seriesId: 3 },
 ]
 
-export function findSeriesEntryById(id: number): SeriesEntryRow | undefined {
+export function findSeriesEntryById(id: number): SeriesEntry | undefined {
   return seriesEntries.find((row) => row.id === id)
 }
-

@@ -3,11 +3,11 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '../../data/boatClasses'
-import { boats } from '../../data/boats'
-import { handicapTypes } from '../../data/handicapTypes'
-import { raceClasses } from '../../data/raceClasses'
-import { races } from '../../data/races'
+import { boatClasses } from '@/models/boatClasses.ts'
+import { boats } from '@/models/boats.ts'
+import { handicapTypes } from '@/models/handicapTypes.ts'
+import { raceClasses } from '@/models/raceClasses.ts'
+import { races } from '@/models/races.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -101,15 +101,17 @@ function saveChanges() {
           </tr>
           <tr>
             <th>Name</th>
-            <td><input v-model="form.name" class="form-control" :readonly="!isEditing" type="text" /></td>
+            <td>
+              <input v-model="form.name" :readonly="!isEditing" class="form-control" type="text" />
+            </td>
           </tr>
           <tr>
             <th>Handicap value</th>
             <td>
               <input
                 v-model.number="form.handicapValue"
-                class="form-control"
                 :readonly="!isEditing"
+                class="form-control"
                 type="number"
               />
             </td>
@@ -119,7 +121,9 @@ function saveChanges() {
             <td>
               <span v-if="!isEditing">{{ handicapTypeName }}</span>
               <select v-else v-model.number="form.handicapTypeId" class="form-control">
-                <option v-for="item in handicapTypes" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in handicapTypes" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -127,20 +131,29 @@ function saveChanges() {
       </table>
 
       <div class="d-flex gap-2 mb-3">
-        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">Edit</button>
+        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">
+          Edit
+        </button>
         <button
           v-else
-          class="btn btn-primary"
           :disabled="!hasChanges"
+          class="btn btn-primary"
           type="button"
           @click="saveChanges"
         >
           Save changes
         </button>
-        <button v-if="isEditing" class="btn btn-outline-secondary" type="button" @click="cancelEdit">
+        <button
+          v-if="isEditing"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="cancelEdit"
+        >
           Cancel
         </button>
-        <RouterLink class="btn btn-danger" :to="`/boat-class/delete/${boatClass.id}`">Delete</RouterLink>
+        <RouterLink :to="`/boat-class/delete/${boatClass.id}`" class="btn btn-danger"
+          >Delete</RouterLink
+        >
       </div>
 
       <h2 class="h4 mt-4">Boats in this class</h2>
@@ -155,7 +168,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="boat in boatsInClass" :key="boat.id">
             <td>{{ boat.id }}</td>
-            <td><RouterLink :to="`/boat/${boat.id}`">{{ boat.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/boat/${boat.id}`">{{ boat.name }}</RouterLink>
+            </td>
             <td>{{ boat.helmName }}</td>
           </tr>
         </tbody>
@@ -173,7 +188,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="race in racesInClass" :key="race.id">
             <td>{{ race.id }}</td>
-            <td><RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink>
+            </td>
             <td>{{ race.date }}</td>
           </tr>
         </tbody>
@@ -181,4 +198,3 @@ function saveChanges() {
     </div>
   </section>
 </template>
-

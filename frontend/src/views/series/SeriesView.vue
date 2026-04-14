@@ -2,8 +2,8 @@
 import { RouterLink } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { raceClasses } from '../../data/raceClasses'
-import { seriesRows } from '../../data/series'
+import { raceClasses } from '@/models/raceClasses.ts'
+import { seriesRows } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -15,7 +15,9 @@ function getRaceClassName(raceClassId: number): string {
 <template>
   <main class="container mt-3">
     <h1>Series</h1>
-    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'series-create' }">Create</RouterLink>
+    <RouterLink :to="{ name: 'series-create' }" class="btn btn-sm btn-primary mr-2"
+      >Create</RouterLink
+    >
 
     <DataTable class="table table-striped table-bordered mt-3">
       <thead>
@@ -40,7 +42,9 @@ function getRaceClassName(raceClassId: number): string {
             </RouterLink>
           </td>
           <td>
-            <RouterLink class="btn btn-sm btn-secondary" :to="`/series/${item.id}`">Details</RouterLink>
+            <RouterLink :to="`/series/${item.id}`" class="btn btn-sm btn-secondary"
+              >Details</RouterLink
+            >
           </td>
         </tr>
       </tbody>

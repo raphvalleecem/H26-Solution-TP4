@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { handicapTypes } from '../../data/handicapTypes'
+import { handicapTypes } from '@/models/handicapTypes.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -55,7 +55,8 @@ function toNumberOrNull(value: unknown): number | null {
 }
 
 function normalizeBoatClass(row: BoatClassApiRow): BoatClassRow {
-  const handicapTypeObj = typeof row.handicapType === 'object' && row.handicapType !== null ? row.handicapType : null
+  const handicapTypeObj =
+    typeof row.handicapType === 'object' && row.handicapType !== null ? row.handicapType : null
   const fallbackTypeName = typeof row.handicapType === 'string' ? row.handicapType : null
 
   return {
@@ -63,7 +64,8 @@ function normalizeBoatClass(row: BoatClassApiRow): BoatClassRow {
     name: typeof row.name === 'string' ? row.name : '',
     handicapValue: toNumberOrNull(row.handicapValue ?? row.handicap_value) ?? 0,
     handicapTypeId:
-      toNumberOrNull(row.handicapTypeId ?? row.handicap_type_id) ?? toNumberOrNull(handicapTypeObj?.id),
+      toNumberOrNull(row.handicapTypeId ?? row.handicap_type_id) ??
+      toNumberOrNull(handicapTypeObj?.id),
     handicapTypeName:
       (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
   }
@@ -75,7 +77,10 @@ function getHandicapTypeName(item: BoatClassRow): string {
   }
 
   if (item.handicapTypeId !== null) {
-    return handicapTypes.find((type) => type.id === item.handicapTypeId)?.name ?? `#${item.handicapTypeId}`
+    return (
+      handicapTypes.find((type) => type.id === item.handicapTypeId)?.name ??
+      `#${item.handicapTypeId}`
+    )
   }
 
   return 'Unknown'
@@ -85,7 +90,9 @@ function getHandicapTypeName(item: BoatClassRow): string {
 <template>
   <main class="container mt-3">
     <h1>Boat classes</h1>
-    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'boat-class-create' }">Create</RouterLink>
+    <RouterLink :to="{ name: 'boat-class-create' }" class="btn btn-sm btn-primary mr-2"
+      >Create</RouterLink
+    >
 
     <div v-if="errorMessage" class="alert alert-danger mt-3" role="alert">
       {{ errorMessage }}
@@ -111,7 +118,9 @@ function getHandicapTypeName(item: BoatClassRow): string {
           <td>{{ item.handicapValue }}</td>
           <td>{{ getHandicapTypeName(item) }}</td>
           <td>
-            <RouterLink class="btn btn-sm btn-secondary" :to="`/boat-class/${item.id}`">Details</RouterLink>
+            <RouterLink :to="`/boat-class/${item.id}`" class="btn btn-sm btn-secondary"
+              >Details</RouterLink
+            >
           </td>
         </tr>
       </tbody>

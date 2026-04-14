@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 import ClassForm from '../../components/ClassForm.vue'
-import { addRaceClass } from '@/data/raceClasses'
+import { addRaceClass } from '@/models/raceClasses'
 
 const router = useRouter()
 
@@ -13,7 +13,7 @@ async function createClass(payload: {
   raceClassTypeId: number
 }) {
   await addRaceClass(payload)
-  router.push({ name: 'race-class' })
+  await router.push({ name: 'race-class' })
 }
 
 function cancel() {

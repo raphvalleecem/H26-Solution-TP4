@@ -1,11 +1,11 @@
-export type RaceEntryRow = {
+export type RaceEntry = {
   id: number
   boatId: number
   raceId: number
   seriesEntryId?: number
 }
 
-export const raceEntries: RaceEntryRow[] = [
+export const raceEntries: RaceEntry[] = [
   { id: 1, boatId: 1, raceId: 1, seriesEntryId: 1 },
   { id: 2, boatId: 5, raceId: 1, seriesEntryId: 2 },
   { id: 3, boatId: 9, raceId: 1, seriesEntryId: 3 },
@@ -16,18 +16,18 @@ export const raceEntries: RaceEntryRow[] = [
   { id: 8, boatId: 6, raceId: 6, seriesEntryId: 6 },
 ]
 
-export function findRaceEntryById(id: number): RaceEntryRow | undefined {
+export function findRaceEntryById(id: number): RaceEntry | undefined {
   return raceEntries.find((row) => row.id === id)
 }
 
-export function addRaceEntry(payload: Omit<RaceEntryRow, 'id'>): RaceEntryRow {
+export function addRaceEntry(payload: Omit<RaceEntry, 'id'>): RaceEntry {
   const nextId = Math.max(0, ...raceEntries.map((row) => row.id)) + 1
-  const row: RaceEntryRow = { id: nextId, ...payload }
+  const row: RaceEntry = { id: nextId, ...payload }
   raceEntries.push(row)
   return row
 }
 
-export function updateRaceEntry(id: number, payload: Omit<RaceEntryRow, 'id'>): boolean {
+export function updateRaceEntry(id: number, payload: Omit<RaceEntry, 'id'>): boolean {
   const index = raceEntries.findIndex((row) => row.id === id)
   if (index < 0) {
     return false
@@ -46,4 +46,3 @@ export function deleteRaceEntry(id: number): boolean {
   raceEntries.splice(index, 1)
   return true
 }
-

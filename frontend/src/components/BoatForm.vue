@@ -62,25 +62,44 @@ function onSubmit() {
       <div class="form-group">
         <label for="boat-class">Boat class</label>
         <select id="boat-class" v-model.number="form.boatClassId" class="form-control" required>
-          <option v-for="item in props.boatClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+          <option v-for="item in props.boatClasses" :key="item.id" :value="item.id">
+            {{ item.name }}
+          </option>
         </select>
       </div>
 
       <div class="form-group">
         <label for="sail-number">Sail number</label>
-        <input id="sail-number" v-model.number="form.sailNumber" class="form-control" required type="number" />
+        <input
+          id="sail-number"
+          v-model.number="form.sailNumber"
+          class="form-control"
+          required
+          type="number"
+        />
       </div>
 
       <div class="form-group">
         <label for="helm-name">Helm name</label>
-        <input id="helm-name" v-model.trim="form.helmName" class="form-control" required type="text" />
+        <input
+          id="helm-name"
+          v-model.trim="form.helmName"
+          class="form-control"
+          required
+          type="text"
+        />
       </div>
 
       <div class="d-flex">
-        <button class="btn btn-primary mr-2" :disabled="props.isSubmitting" type="submit">
+        <button :disabled="props.isSubmitting" class="btn btn-primary mr-2" type="submit">
           {{ props.isSubmitting ? 'Creating...' : submitLabel }}
         </button>
-        <button class="btn btn-outline-secondary" :disabled="props.isSubmitting" type="button" @click="emit('cancel')">
+        <button
+          :disabled="props.isSubmitting"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="emit('cancel')"
+        >
           Cancel
         </button>
       </div>

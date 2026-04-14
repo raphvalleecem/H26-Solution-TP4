@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { handicapTypes } from '../../data/handicapTypes'
+import { handicapTypes } from '@/models/handicapTypes.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -69,21 +69,32 @@ function toNumberOrNull(value: unknown): number | null {
 }
 
 function normalizeBoat(row: BoatApiRow): BoatRow {
-  const boatClass = typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null
+  const boatClass =
+    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null
   const handicapTypeObj =
-    typeof boatClass?.handicapType === 'object' && boatClass.handicapType !== null ? boatClass.handicapType : null
-  const fallbackTypeName = typeof boatClass?.handicapType === 'string' ? boatClass.handicapType : null
+    typeof boatClass?.handicapType === 'object' && boatClass.handicapType !== null
+      ? boatClass.handicapType
+      : null
+  const fallbackTypeName =
+    typeof boatClass?.handicapType === 'string' ? boatClass.handicapType : null
 
   return {
     id: toNumberOrNull(row.id) ?? 0,
     name: typeof row.name === 'string' ? row.name : '',
     sailNumber: toNumberOrNull(row.sailNumber ?? row.sail_number) ?? 0,
-    helmName: typeof row.helmName === 'string' ? row.helmName : typeof row.helm_name === 'string' ? row.helm_name : '',
-    boatClassId: toNumberOrNull(row.boatClassId ?? row.boat_class_id) ?? toNumberOrNull(boatClass?.id),
+    helmName:
+      typeof row.helmName === 'string'
+        ? row.helmName
+        : typeof row.helm_name === 'string'
+          ? row.helm_name
+          : '',
+    boatClassId:
+      toNumberOrNull(row.boatClassId ?? row.boat_class_id) ?? toNumberOrNull(boatClass?.id),
     boatClassName: typeof boatClass?.name === 'string' ? boatClass.name : null,
     handicapValue: toNumberOrNull(boatClass?.handicapValue ?? boatClass?.handicap_value),
     handicapTypeId:
-      toNumberOrNull(boatClass?.handicapTypeId ?? boatClass?.handicap_type_id) ?? toNumberOrNull(handicapTypeObj?.id),
+      toNumberOrNull(boatClass?.handicapTypeId ?? boatClass?.handicap_type_id) ??
+      toNumberOrNull(handicapTypeObj?.id),
     handicapTypeName:
       (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
   }
@@ -107,7 +118,10 @@ function getHandicapName(boat: BoatRow): string {
   }
 
   if (boat.handicapTypeId !== null) {
-    return handicapTypes.find((item) => item.id === boat.handicapTypeId)?.name ?? `#${boat.handicapTypeId}`
+    return (
+      handicapTypes.find((item) => item.id === boat.handicapTypeId)?.name ??
+      `#${boat.handicapTypeId}`
+    )
   }
 
   return '-'
@@ -117,7 +131,9 @@ function getHandicapName(boat: BoatRow): string {
 <template>
   <main class="container mt-3">
     <h1>Boats</h1>
-    <RouterLink class="btn btn-sm btn-primary mr-2" :to="{ name: 'boat-create' }">Create</RouterLink>
+    <RouterLink :to="{ name: 'boat-create' }" class="btn btn-sm btn-primary mr-2"
+      >Create</RouterLink
+    >
 
     <div v-if="errorMessage" class="alert alert-danger mt-3" role="alert">
       {{ errorMessage }}
@@ -155,7 +171,9 @@ function getHandicapName(boat: BoatRow): string {
             {{ getHandicapName(boat) }}
           </td>
           <td>
-            <RouterLink class="btn btn-sm btn-secondary" :to="`/boat/${boat.id}`">Details</RouterLink>
+            <RouterLink :to="`/boat/${boat.id}`" class="btn btn-sm btn-secondary"
+              >Details</RouterLink
+            >
           </td>
         </tr>
       </tbody>

@@ -84,10 +84,11 @@ async function createBoat(payload: {
     body.append('helmName', payload.helmName)
 
     await axios.post('/boats', body)
-    router.push({ name: 'boat' })
+    await router.push({ name: 'boat' })
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      errorMessage.value = getApiErrorMessage(error.response?.data) ?? 'Unable to create boat. Please try again.'
+      errorMessage.value =
+        getApiErrorMessage(error.response?.data) ?? 'Unable to create boat. Please try again.'
       return
     }
 
@@ -117,10 +118,10 @@ function cancel() {
       v-else
       :boat-classes="boatClasses"
       :is-submitting="isSubmitting"
-      title="Create boat"
       submit-label="Create"
-      @submit="createBoat"
+      title="Create boat"
       @cancel="cancel"
+      @submit="createBoat"
     />
   </section>
 </template>

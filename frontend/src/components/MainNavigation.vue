@@ -50,7 +50,7 @@ const breadcrumbs = computed(() => {
       <RouterLink class="nav-link" to="/series">Series</RouterLink>
       <RouterLink class="nav-link" to="/boat">Boat</RouterLink>
 
-      <div class="dropdown" role="group" aria-label="Classes">
+      <div aria-label="Classes" class="dropdown" role="group">
         <button class="dropbtn" type="button">Classes</button>
         <div class="dropdown-content">
           <RouterLink class="dropdown-link" to="/boat-class">Boat classes</RouterLink>
@@ -92,10 +92,6 @@ const breadcrumbs = computed(() => {
   font-size: 1rem;
   font-weight: 600;
   text-transform: capitalize;
-}
-
-.nav-link.router-link-active {
-  color: hsla(160, 100%, 37%, 1);
 }
 
 .dropdown {

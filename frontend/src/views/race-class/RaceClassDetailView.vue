@@ -3,12 +3,12 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '../../data/boatClasses'
-import { handicapTypes } from '../../data/handicapTypes'
-import { raceClasses } from '../../data/raceClasses'
-import { raceClassTypes } from '../../data/raceClassTypes'
-import { races } from '../../data/races'
-import { seriesRows } from '../../data/series'
+import { boatClasses } from '@/models/boatClasses.ts'
+import { handicapTypes } from '@/models/handicapTypes.ts'
+import { raceClasses } from '@/models/raceClasses.ts'
+import { raceClassTypes } from '@/models/raceClassTypes.ts'
+import { races } from '@/models/races.ts'
+import { seriesRows } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -123,14 +123,18 @@ function saveChanges() {
           </tr>
           <tr>
             <th>Name</th>
-            <td><input v-model="form.name" class="form-control" :readonly="!isEditing" type="text" /></td>
+            <td>
+              <input v-model="form.name" :readonly="!isEditing" class="form-control" type="text" />
+            </td>
           </tr>
           <tr>
             <th>Race class type</th>
             <td>
               <span v-if="!isEditing">{{ raceClassTypeName }}</span>
               <select v-else v-model.number="form.raceClassTypeId" class="form-control">
-                <option v-for="item in raceClassTypes" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in raceClassTypes" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -139,10 +143,10 @@ function saveChanges() {
             <td>
               <input
                 v-model="form.minHandicap"
-                class="form-control"
-                :readonly="!isEditing"
-                type="text"
                 :disabled="Number(form.raceClassTypeId) === 1"
+                :readonly="!isEditing"
+                class="form-control"
+                type="text"
               />
             </td>
           </tr>
@@ -151,10 +155,10 @@ function saveChanges() {
             <td>
               <input
                 v-model="form.maxHandicap"
-                class="form-control"
-                :readonly="!isEditing"
-                type="text"
                 :disabled="Number(form.raceClassTypeId) === 1"
+                :readonly="!isEditing"
+                class="form-control"
+                type="text"
               />
             </td>
           </tr>
@@ -165,29 +169,36 @@ function saveChanges() {
               <select
                 v-else
                 v-model.number="form.handicapTypeId"
-                class="form-control"
                 :disabled="Number(form.raceClassTypeId) === 1"
+                class="form-control"
               >
                 <option :value="''">-</option>
-                <option v-for="item in handicapTypes" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in handicapTypes" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
           <tr>
             <th>Monotype boat class</th>
             <td>
-              <RouterLink v-if="!isEditing && Number(form.boatClassId)" :to="`/boat-class/${form.boatClassId}`">
+              <RouterLink
+                v-if="!isEditing && Number(form.boatClassId)"
+                :to="`/boat-class/${form.boatClassId}`"
+              >
                 {{ boatClassName }}
               </RouterLink>
               <span v-else-if="!isEditing">{{ boatClassName }}</span>
               <select
                 v-else
                 v-model.number="form.boatClassId"
-                class="form-control"
                 :disabled="Number(form.raceClassTypeId) !== 1"
+                class="form-control"
               >
                 <option :value="''">-</option>
-                <option v-for="item in boatClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in boatClasses" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -195,20 +206,29 @@ function saveChanges() {
       </table>
 
       <div class="d-flex gap-2 mb-3">
-        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">Edit</button>
+        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">
+          Edit
+        </button>
         <button
           v-else
-          class="btn btn-primary"
           :disabled="!hasChanges"
+          class="btn btn-primary"
           type="button"
           @click="saveChanges"
         >
           Save changes
         </button>
-        <button v-if="isEditing" class="btn btn-outline-secondary" type="button" @click="cancelEdit">
+        <button
+          v-if="isEditing"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="cancelEdit"
+        >
           Cancel
         </button>
-        <RouterLink class="btn btn-danger" :to="`/race-class/delete/${raceClass.id}`">Delete</RouterLink>
+        <RouterLink :to="`/race-class/delete/${raceClass.id}`" class="btn btn-danger"
+          >Delete</RouterLink
+        >
       </div>
 
       <h2 class="h4 mt-4">Races in this class</h2>
@@ -223,7 +243,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="row in relatedRaces" :key="row.id">
             <td>{{ row.id }}</td>
-            <td><RouterLink :to="`/race/${row.id}`">{{ row.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/race/${row.id}`">{{ row.name }}</RouterLink>
+            </td>
             <td>{{ row.date }}</td>
           </tr>
         </tbody>
@@ -241,7 +263,9 @@ function saveChanges() {
         <tbody>
           <tr v-for="row in relatedSeries" :key="row.id">
             <td>{{ row.id }}</td>
-            <td><RouterLink :to="`/series/${row.id}`">{{ row.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/series/${row.id}`">{{ row.name }}</RouterLink>
+            </td>
             <td>{{ row.nbRaces }}</td>
           </tr>
         </tbody>
@@ -249,4 +273,3 @@ function saveChanges() {
     </div>
   </section>
 </template>
-

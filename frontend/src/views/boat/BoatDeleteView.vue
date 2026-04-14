@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { findBoatById } from '../../data/boats'
+import { findBoatById } from '@/models/boats.ts'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,7 +29,7 @@ function confirmDelete() {
         <p class="text-danger">Prototype UX: confirmation returns to index only.</p>
 
         <button class="btn btn-danger mr-2" type="button" @click="confirmDelete">Delete</button>
-        <RouterLink class="btn btn-outline-secondary" :to="{ name: 'boat' }">Cancel</RouterLink>
+        <RouterLink :to="{ name: 'boat' }" class="btn btn-outline-secondary">Cancel</RouterLink>
       </div>
     </div>
   </section>

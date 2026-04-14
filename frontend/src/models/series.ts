@@ -1,4 +1,4 @@
-export type SeriesRow = {
+export type Series = {
   id: number
   name: string
   nbRaces: number
@@ -7,7 +7,7 @@ export type SeriesRow = {
   isCompleted: boolean
 }
 
-export const seriesRows: SeriesRow[] = [
+export const seriesRows: Series[] = [
   { id: 1, name: 'Serie 1', nbRaces: 2, nbRacesToCount: 2, raceClassId: 1, isCompleted: true },
   { id: 2, name: 'Serie 2', nbRaces: 2, nbRacesToCount: 2, raceClassId: 2, isCompleted: true },
   { id: 3, name: 'Serie 3', nbRaces: 2, nbRacesToCount: 1, raceClassId: 3, isCompleted: false },
@@ -22,7 +22,7 @@ export const seriesRows: SeriesRow[] = [
   { id: 12, name: 'Serie 12', nbRaces: 2, nbRacesToCount: 1, raceClassId: 12, isCompleted: false },
 ]
 
-export async function getSeries(): Promise<any[]> {
+export async function getSeries(): Promise<Series[]> {
   // try {
   //   const response = await axios.get<SeriesRow[]>('http://localhost:3000/series')
   //   return response.data
@@ -30,10 +30,19 @@ export async function getSeries(): Promise<any[]> {
   //   console.error('Error:', error)
   //   return []
   // }
-  return [{ id: 1, name: 'SerieTest' }]
+  return [
+    {
+      id: 1,
+      name: 'SerieTest',
+      nbRaces: 0,
+      nbRacesToCount: 0,
+      raceClassId: 0,
+      isCompleted: false,
+    },
+  ]
 }
 
-export function findSeriesById(id: number): SeriesRow | undefined {
+export function findSeriesById(id: number): Series | undefined {
   return seriesRows.find((row) => row.id === id)
 }
 
@@ -45,9 +54,9 @@ type SeriesPayload = {
   isCompleted?: boolean
 }
 
-export function addSeries(payload: SeriesPayload): SeriesRow {
+export function addSeries(payload: SeriesPayload): Series {
   const nextId = Math.max(0, ...seriesRows.map((row) => row.id)) + 1
-  const row: SeriesRow = {
+  const row: Series = {
     id: nextId,
     name: payload.name,
     nbRaces: payload.nbRaces,

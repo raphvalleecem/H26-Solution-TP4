@@ -3,12 +3,12 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boats } from '../../data/boats'
-import { raceClasses } from '../../data/raceClasses'
-import { races } from '../../data/races'
-import { seriesEntries } from '../../data/seriesEntries'
-import { seriesOutcomes } from '../../data/seriesOutcomes'
-import { findSeriesById } from '../../data/series'
+import { boats } from '@/models/boats.ts'
+import { raceClasses } from '@/models/raceClasses.ts'
+import { races } from '@/models/races.ts'
+import { seriesEntries } from '@/models/seriesEntries.ts'
+import { seriesOutcomes } from '@/models/seriesOutcomes.ts'
+import { findSeriesById } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -22,7 +22,9 @@ type SeriesForm = {
 
 const route = useRoute()
 const seriesId = computed(() => Number.parseInt(String(route.params.id), 10))
-const seriesItem = computed(() => (Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value)))
+const seriesItem = computed(() =>
+  Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
+)
 
 const isEditing = ref(false)
 const selectedBoatId = ref<number | null>(null)
@@ -153,12 +155,19 @@ function addEntry() {
           </tr>
           <tr>
             <th>Name</th>
-            <td><input v-model="form.name" class="form-control" :readonly="!isEditing" type="text" /></td>
+            <td>
+              <input v-model="form.name" :readonly="!isEditing" class="form-control" type="text" />
+            </td>
           </tr>
           <tr>
             <th>Nb races</th>
             <td>
-              <input v-model.number="form.nbRaces" class="form-control" :readonly="!isEditing" type="number" />
+              <input
+                v-model.number="form.nbRaces"
+                :readonly="!isEditing"
+                class="form-control"
+                type="number"
+              />
             </td>
           </tr>
           <tr>
@@ -166,8 +175,8 @@ function addEntry() {
             <td>
               <input
                 v-model.number="form.nbRacesToCount"
-                class="form-control"
                 :readonly="!isEditing"
+                class="form-control"
                 type="number"
               />
             </td>
@@ -179,7 +188,9 @@ function addEntry() {
                 {{ raceClassName }}
               </RouterLink>
               <select v-else v-model.number="form.raceClassId" class="form-control">
-                <option v-for="item in raceClasses" :key="item.id" :value="item.id">{{ item.name }}</option>
+                <option v-for="item in raceClasses" :key="item.id" :value="item.id">
+                  {{ item.name }}
+                </option>
               </select>
             </td>
           </tr>
@@ -191,20 +202,29 @@ function addEntry() {
       </table>
 
       <div class="d-flex gap-2 mb-3">
-        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">Edit</button>
+        <button v-if="!isEditing" class="btn btn-primary" type="button" @click="startEdit">
+          Edit
+        </button>
         <button
           v-else
-          class="btn btn-primary"
           :disabled="!hasChanges"
+          class="btn btn-primary"
           type="button"
           @click="saveChanges"
         >
           Save changes
         </button>
-        <button v-if="isEditing" class="btn btn-outline-secondary" type="button" @click="cancelEdit">
+        <button
+          v-if="isEditing"
+          class="btn btn-outline-secondary"
+          type="button"
+          @click="cancelEdit"
+        >
           Cancel
         </button>
-        <RouterLink class="btn btn-danger" :to="`/series/delete/${seriesItem.id}`">Delete</RouterLink>
+        <RouterLink :to="`/series/delete/${seriesItem.id}`" class="btn btn-danger"
+          >Delete</RouterLink
+        >
       </div>
 
       <h2 class="h4 mt-4">Races in this series</h2>
@@ -220,7 +240,9 @@ function addEntry() {
         <tbody>
           <tr v-for="race in racesInSeries" :key="race.id">
             <td>{{ race.id }}</td>
-            <td><RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink>
+            </td>
             <td>{{ race.date }}</td>
             <td>{{ race.startTime }}</td>
           </tr>
@@ -238,7 +260,9 @@ function addEntry() {
         </thead>
         <tbody>
           <tr v-for="row in boatRows" :key="`${row.boat.id}-${row.source}`">
-            <td><RouterLink :to="`/boat/${row.boat.id}`">{{ row.boat.name }}</RouterLink></td>
+            <td>
+              <RouterLink :to="`/boat/${row.boat.id}`">{{ row.boat.name }}</RouterLink>
+            </td>
             <td v-if="form.isCompleted">{{ row.outcome?.totalPoints ?? '-' }}</td>
             <td v-if="form.isCompleted">{{ row.outcome?.position ?? '-' }}</td>
           </tr>
@@ -263,5 +287,3 @@ function addEntry() {
     </div>
   </section>
 </template>
-
-
