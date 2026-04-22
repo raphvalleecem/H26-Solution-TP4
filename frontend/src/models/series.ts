@@ -24,7 +24,7 @@ export const seriesRows: Series[] = [
 
 export async function getSeries(): Promise<Series[]> {
   // try {
-  //   const response = await axios.get<SeriesRow[]>('http://localhost:3000/series')
+  //   const response = await axios.get<SeriesRow[]>('http://localhost:3000/series') DOESNT EXIST YET
   //   return response.data
   // } catch (error) {
   //   console.error('Error:', error)

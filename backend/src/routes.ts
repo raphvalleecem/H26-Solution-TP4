@@ -7,7 +7,7 @@ const router = Router();
 const upload = multer({storage: multer.memoryStorage()});
 let fetchProvider: FetchProvider;
 
-router.get('/boats', async (req: Request, res: Response) => {
+router.get('/boat', async (req: Request, res: Response) => {
     try {
         const boats = await getProvider().getBoats();
         res.json(boats);
@@ -15,38 +15,7 @@ router.get('/boats', async (req: Request, res: Response) => {
         res.status(500).json({error: "Internal Server Error"});
     }
 });
-
-router.get('/race-class', async (req: Request, res: Response) => {
-    try {
-        const raceClass = await getProvider().getRaceClass();
-        res.json(raceClass);
-    } catch (error) {
-        res.status(500).json({error: "Internal Server Error"});
-    }
-});
-
-router.post('/race-class', upload.none(), async (req: Request, res: Response) => {
-    try {
-        console.log(req.body);
-
-        const body = req.body;
-
-        if (!body) {
-            return res.status(400).json({error: "Body is required"});
-        }
-
-        let raceClass: RaceClass;
-        raceClass = body;
-
-        await getProvider().addRaceClass(raceClass);
-
-        res.status(201).json({message: "RaceClass created successfully", raceClass});
-    } catch (error) {
-        res.status(500).json({error: "Internal Server Error"});
-    }
-});
-
-const createBoatHandler = async (req: Request, res: Response) => {
+router.post('/boat/create', upload.none(), async (req: Request, res: Response) => {
     try {
         const {name, sailNumber, helmName, boatClassId} = req.body;
 
@@ -86,22 +55,41 @@ const createBoatHandler = async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
-};
-
-const getBoatClassesHandler = async (req: Request, res: Response) => {
-    res.json(await getProvider().getBoatClasses());
-};
-
-router.get('/boat-classes', getBoatClassesHandler);
-router.get('/boat-class', getBoatClassesHandler);
-router.get('/races', async (req: Request, res: Response) => {
-    res.json(await getProvider().getRaces());
 });
 
-router.post('/boats', upload.none(), createBoatHandler);
-router.post('/boat', upload.none(), createBoatHandler);
+router.get('/race-class', async (req: Request, res: Response) => {
+    try {
+        const raceClass = await getProvider().getRaceClass();
+        res.json(raceClass);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+router.post('/race-class/create', upload.none(), async (req: Request, res: Response) => {
+    try {
+        console.log(req.body);
 
-router.post('/boat-class', upload.none(), async (req: Request, res: Response) => {
+        const body = req.body;
+
+        if (!body) {
+            return res.status(400).json({error: "Body is required"});
+        }
+
+        let raceClass: RaceClass;
+        raceClass = body;
+
+        await getProvider().addRaceClass(raceClass);
+
+        res.status(201).json({message: "RaceClass created successfully", raceClass});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.get('/boat-class', async (req: Request, res: Response) => {
+    res.json(await getProvider().getBoatClasses());
+});
+router.post('/boat-class/create', upload.none(), async (req: Request, res: Response) => {
     try {
         const {name, handicapValue, handicapTypeId} = req.body;
 
@@ -143,7 +131,10 @@ router.post('/boat-class', upload.none(), async (req: Request, res: Response) =>
     }
 });
 
-router.post('/race', upload.none(), async (req: Request, res: Response) => {
+router.get('/race', async (req: Request, res: Response) => {
+    res.json(await getProvider().getRaces());
+});
+router.post('/race/create', upload.none(), async (req: Request, res: Response) => {
     try {
         const {name, startTime, course, raceClassId, seriesId} = req.body;
 

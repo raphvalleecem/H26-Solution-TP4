@@ -83,7 +83,7 @@ export function findRaceClassById(id: number): RaceClass | undefined {
 
 export async function addRaceClass(payload: Omit<RaceClass, 'id'>): Promise<void> {
   try {
-    const response = await axios.post('http://localhost:3000/race-class', payload)
+    const response = await axios.post('http://localhost:3000/race-class/create', payload)
     console.log('Success:', response.data)
   } catch (error) {
     console.error('Error:', error)

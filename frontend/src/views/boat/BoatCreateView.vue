@@ -83,7 +83,7 @@ async function createBoat(payload: {
     body.append('sailNumber', String(payload.sailNumber))
     body.append('helmName', payload.helmName)
 
-    await axios.post('/boats', body)
+    await axios.post('/boat/create', body)
     await router.push({ name: 'boat' })
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

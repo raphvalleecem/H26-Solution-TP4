@@ -5,7 +5,7 @@ import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
 import { type Boat, boats } from '@/models/boats.ts'
 import { raceEntries } from '@/models/raceEntries.ts'
-import { type RaceOutcomeResult, type RaceOutcome, raceOutcomes } from '@/models/raceOutcomes.ts'
+import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts'
 import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts'
 import { getSeries, type Series } from '@/models/series.ts'
 

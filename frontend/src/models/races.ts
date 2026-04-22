@@ -1,5 +1,4 @@
 import axios from 'axios'
-import type { RaceClass } from '@/models/raceClasses.ts'
 
 export type Race = {
   id: number
@@ -38,7 +37,7 @@ export async function getRaces(): Promise<Race[]> {
 
 export async function addRace(formData: Omit<Race, 'id'>): Promise<void> {
   try {
-    const response = await axios.post('http://localhost:3000/race', formData)
+    const response = await axios.post('http://localhost:3000/race/create', formData)
     console.log('Success:', response.data)
   } catch (error) {
     console.error('Error:', error)

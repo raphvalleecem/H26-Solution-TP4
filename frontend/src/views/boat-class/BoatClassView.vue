@@ -36,7 +36,7 @@ async function loadBoatClasses() {
   errorMessage.value = ''
 
   try {
-    const response = await axios.get<BoatClassApiRow[]>('/boat-classes')
+    const response = await axios.get<BoatClassApiRow[]>('/boat-class')
     boatClasses.value = response.data.map((row) => normalizeBoatClass(row))
   } catch {
     errorMessage.value = 'Unable to load boat classes. Please try again.'

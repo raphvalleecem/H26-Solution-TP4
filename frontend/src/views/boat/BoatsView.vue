@@ -50,7 +50,7 @@ async function loadBoats() {
   errorMessage.value = ''
 
   try {
-    const response = await axios.get<BoatApiRow[]>('/boats')
+    const response = await axios.get<BoatApiRow[]>('/boat')
     boats.value = response.data.map((row) => normalizeBoat(row))
   } catch {
     errorMessage.value = 'Unable to load boats. Please try again.'

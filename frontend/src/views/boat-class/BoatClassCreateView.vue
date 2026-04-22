@@ -51,7 +51,7 @@ async function onCreate() {
   isSubmitting.value = true
 
   try {
-    await axios.post('/boat-class', payload)
+    await axios.post('/boat-class/create', payload)
     await router.push({ name: 'boat-class' })
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
