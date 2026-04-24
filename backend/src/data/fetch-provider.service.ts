@@ -262,16 +262,31 @@ export class FetchProvider {
 
     public async getRaceOutcomes(): Promise<RaceOutcome[]> {
         const raceOutcomes = await AppDataSource.manager.find(RaceOutcome, {
-            relations: ["raceEntry", "raceEntry.boat", "raceEntry.boat.boatClass", "raceEntry.race", "raceEntry.race.raceClass", "raceEntry.race.raceClass.handicapType"],
+            relations: [
+                "raceEntry",
+                "raceEntry.boat",
+                "raceEntry.boat.boatClass",
+                "raceEntry.boat.boatClass.handicapType",
+                "raceEntry.race",
+                "raceEntry.race.raceClass",
+                "raceEntry.race.raceClass.handicapType"
+            ],
         });
         return raceOutcomes || [];
     }
 
     public async addRaceOutcome(raceOutcome: RaceOutcome): Promise<RaceOutcome> {
-        // Charger les relations nécessaires pour accéder à la course et son handicap
+        // Charger les relations nécessaires pour accéder à la course et au bateau avec leurs handicaps
         const raceEntry = await AppDataSource.manager.findOne(RaceEntry, {
             where: { id: raceOutcome.raceEntry.id },
-            relations: ["race", "race.raceClass", "race.raceClass.handicapType"],
+            relations: [
+                "race",
+                "race.raceClass",
+                "race.raceClass.handicapType",
+                "boat",
+                "boat.boatClass",
+                "boat.boatClass.handicapType"
+            ],
         });
 
         // D'abord, calculer le temps écoulé (finishTime - startTime)
@@ -281,18 +296,24 @@ export class FetchProvider {
                 raceEntry.race.startTime
             );
 
-            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si la course a un handicap
-            if (raceEntry.race.raceClass && raceEntry.race.raceClass.handicapType) {
+            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si :
+            // 1. La course a un type de handicap défini
+            // 2. Le bateau a un type de handicap défini
+            // 3. La course a des handicaps significatifs
+            if (raceEntry.race.raceClass?.handicapType &&
+                raceEntry.boat?.boatClass?.handicapType &&
+                raceEntry.boat.boatClass.handicapValue > 0) {
+
                 const raceClass = raceEntry.race.raceClass;
+                const boatClass = raceEntry.boat.boatClass;
                 const hasHandicap = raceClass.minHandicap > 0 || raceClass.maxHandicap > 0;
 
                 // Calculer le temps corrigé SEULEMENT si un handicap est défini sur la course
                 if (hasHandicap) {
-                    // Prendre la valeur moyenne du handicap de la course
-                    const handicapValue = (raceClass.minHandicap + raceClass.maxHandicap) / 2;
                     raceOutcome.correctedTime = calculateCorrectedTime(
                         raceOutcome.elapsedTime,
-                        handicapValue
+                        boatClass.handicapValue,
+                        boatClass.handicapType.name
                     );
                 }
             }
@@ -302,10 +323,17 @@ export class FetchProvider {
     }
 
     public async updateRaceOutcome(raceOutcome: RaceOutcome): Promise<RaceOutcome> {
-        // Charger les relations nécessaires pour accéder à la course et son handicap
+        // Charger les relations nécessaires pour accéder à la course et au bateau avec leurs handicaps
         const raceEntry = await AppDataSource.manager.findOne(RaceEntry, {
             where: { id: raceOutcome.raceEntry.id },
-            relations: ["race", "race.raceClass", "race.raceClass.handicapType"],
+            relations: [
+                "race",
+                "race.raceClass",
+                "race.raceClass.handicapType",
+                "boat",
+                "boat.boatClass",
+                "boat.boatClass.handicapType"
+            ],
         });
 
         // D'abord, calculer le temps écoulé (finishTime - startTime)
@@ -315,18 +343,24 @@ export class FetchProvider {
                 raceEntry.race.startTime
             );
 
-            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si la course a un handicap
-            if (raceEntry.race.raceClass && raceEntry.race.raceClass.handicapType) {
+            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si :
+            // 1. La course a un type de handicap défini
+            // 2. Le bateau a un type de handicap défini
+            // 3. La course a des handicaps significatifs
+            if (raceEntry.race?.raceClass?.handicapType &&
+                raceEntry.boat?.boatClass?.handicapType &&
+                raceEntry.boat.boatClass.handicapValue > 0) {
+
                 const raceClass = raceEntry.race.raceClass;
+                const boatClass = raceEntry.boat.boatClass;
                 const hasHandicap = raceClass.minHandicap > 0 || raceClass.maxHandicap > 0;
 
                 // Recalculer le temps corrigé SEULEMENT si un handicap est défini sur la course
                 if (hasHandicap) {
-                    // Prendre la valeur moyenne du handicap de la course
-                    const handicapValue = (raceClass.minHandicap + raceClass.maxHandicap) / 2;
                     raceOutcome.correctedTime = calculateCorrectedTime(
                         raceOutcome.elapsedTime,
-                        handicapValue
+                        boatClass.handicapValue,
+                        boatClass.handicapType.name
                     );
                 }
             }
@@ -342,7 +376,15 @@ export class FetchProvider {
     public async getRaceOutcomeById(id: number): Promise<RaceOutcome | null> {
         return await AppDataSource.manager.findOne(RaceOutcome, {
             where: {id},
-            relations: ["raceEntry", "raceEntry.boat", "raceEntry.boat.boatClass", "raceEntry.race", "raceEntry.race.raceClass", "raceEntry.race.raceClass.handicapType"],
+            relations: [
+                "raceEntry",
+                "raceEntry.boat",
+                "raceEntry.boat.boatClass",
+                "raceEntry.boat.boatClass.handicapType",
+                "raceEntry.race",
+                "raceEntry.race.raceClass",
+                "raceEntry.race.raceClass.handicapType"
+            ],
         });
     }
 
