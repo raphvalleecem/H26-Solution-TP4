@@ -11,6 +11,7 @@ import {
     Series
 } from "../entity/entities";
 import {AppDataSource} from "../data-source";
+import {calculateElapsedTime, calculateCorrectedTime} from "./calculation.service";
 
 export class FetchProvider {
 
@@ -261,16 +262,76 @@ export class FetchProvider {
 
     public async getRaceOutcomes(): Promise<RaceOutcome[]> {
         const raceOutcomes = await AppDataSource.manager.find(RaceOutcome, {
-            relations: ["raceEntry", "raceEntry.boat", "raceEntry.race"],
+            relations: ["raceEntry", "raceEntry.boat", "raceEntry.boat.boatClass", "raceEntry.race", "raceEntry.race.raceClass", "raceEntry.race.raceClass.handicapType"],
         });
         return raceOutcomes || [];
     }
 
     public async addRaceOutcome(raceOutcome: RaceOutcome): Promise<RaceOutcome> {
+        // Charger les relations nécessaires pour accéder à la course et son handicap
+        const raceEntry = await AppDataSource.manager.findOne(RaceEntry, {
+            where: { id: raceOutcome.raceEntry.id },
+            relations: ["race", "race.raceClass", "race.raceClass.handicapType"],
+        });
+
+        // D'abord, calculer le temps écoulé (finishTime - startTime)
+        if (raceEntry && raceEntry.race) {
+            raceOutcome.elapsedTime = calculateElapsedTime(
+                raceOutcome.finishTime,
+                raceEntry.race.startTime
+            );
+
+            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si la course a un handicap
+            if (raceEntry.race.raceClass && raceEntry.race.raceClass.handicapType) {
+                const raceClass = raceEntry.race.raceClass;
+                const hasHandicap = raceClass.minHandicap > 0 || raceClass.maxHandicap > 0;
+
+                // Calculer le temps corrigé SEULEMENT si un handicap est défini sur la course
+                if (hasHandicap) {
+                    // Prendre la valeur moyenne du handicap de la course
+                    const handicapValue = (raceClass.minHandicap + raceClass.maxHandicap) / 2;
+                    raceOutcome.correctedTime = calculateCorrectedTime(
+                        raceOutcome.elapsedTime,
+                        handicapValue
+                    );
+                }
+            }
+        }
+
         return await AppDataSource.manager.save(RaceOutcome, raceOutcome);
     }
 
     public async updateRaceOutcome(raceOutcome: RaceOutcome): Promise<RaceOutcome> {
+        // Charger les relations nécessaires pour accéder à la course et son handicap
+        const raceEntry = await AppDataSource.manager.findOne(RaceEntry, {
+            where: { id: raceOutcome.raceEntry.id },
+            relations: ["race", "race.raceClass", "race.raceClass.handicapType"],
+        });
+
+        // D'abord, calculer le temps écoulé (finishTime - startTime)
+        if (raceEntry && raceEntry.race) {
+            raceOutcome.elapsedTime = calculateElapsedTime(
+                raceOutcome.finishTime,
+                raceEntry.race.startTime
+            );
+
+            // Ensuite, appliquer la formule du temps corrigé UNIQUEMENT si la course a un handicap
+            if (raceEntry.race.raceClass && raceEntry.race.raceClass.handicapType) {
+                const raceClass = raceEntry.race.raceClass;
+                const hasHandicap = raceClass.minHandicap > 0 || raceClass.maxHandicap > 0;
+
+                // Recalculer le temps corrigé SEULEMENT si un handicap est défini sur la course
+                if (hasHandicap) {
+                    // Prendre la valeur moyenne du handicap de la course
+                    const handicapValue = (raceClass.minHandicap + raceClass.maxHandicap) / 2;
+                    raceOutcome.correctedTime = calculateCorrectedTime(
+                        raceOutcome.elapsedTime,
+                        handicapValue
+                    );
+                }
+            }
+        }
+
         return await AppDataSource.manager.save(RaceOutcome, raceOutcome);
     }
 
@@ -281,7 +342,7 @@ export class FetchProvider {
     public async getRaceOutcomeById(id: number): Promise<RaceOutcome | null> {
         return await AppDataSource.manager.findOne(RaceOutcome, {
             where: {id},
-            relations: ["raceEntry", "raceEntry.boat", "raceEntry.race"],
+            relations: ["raceEntry", "raceEntry.boat", "raceEntry.boat.boatClass", "raceEntry.race", "raceEntry.race.raceClass", "raceEntry.race.raceClass.handicapType"],
         });
     }
 

@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 import {FetchProvider} from "./data/fetch-provider.service";
-import {Boat, BoatClass, Race, RaceClass, Series} from "./entity/entities";
+import {Boat, BoatClass, Race, RaceClass, RaceEntry, RaceOutcome, Series} from "./entity/entities";
 import multer from "multer";
 
 const router = Router();
@@ -404,6 +404,97 @@ router.post('/race-class/delete', upload.none(), async (req: Request, res: Respo
         await getProvider().deleteRaceClass(raceClass);
 
         res.json({message: "RaceClass deleted successfully"});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+//#endregion
+
+//#region RaceOutcome
+router.get('/race-outcome', async (req: Request, res: Response) => {
+    try {
+        const raceOutcomes = await getProvider().getRaceOutcomes();
+        res.json(raceOutcomes);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.post('/race-outcome/create', upload.none(), async (req: Request, res: Response) => {
+    try {
+        const {result, position, finishTime, elapsedTime, raceEntryId} = req.body;
+
+        if (raceEntryId === undefined || raceEntryId === null) {
+            return res.status(400).json({error: "raceEntryId is required"});
+        }
+
+        if (elapsedTime === undefined || elapsedTime === null) {
+            return res.status(400).json({error: "elapsedTime is required"});
+        }
+
+        const parsedRaceEntryId = Number(raceEntryId);
+        const parsedElapsedTime = Number(elapsedTime);
+        const parsedPosition = position ? Number(position) : 0;
+
+        if (Number.isNaN(parsedRaceEntryId)) {
+            return res.status(400).json({error: "raceEntryId must be a number"});
+        }
+
+        if (Number.isNaN(parsedElapsedTime)) {
+            return res.status(400).json({error: "elapsedTime must be a number"});
+        }
+
+        const raceEntry = await getProvider().getRaceEntryById(parsedRaceEntryId);
+        if (!raceEntry) {
+            return res.status(404).json({error: "RaceEntry not found"});
+        }
+
+        const raceOutcome = new RaceOutcome();
+        raceOutcome.result = result ? String(result).trim() : "";
+        raceOutcome.position = parsedPosition;
+        raceOutcome.finishTime = finishTime ? new Date(finishTime) : new Date();
+        raceOutcome.elapsedTime = parsedElapsedTime;
+        raceOutcome.raceEntry = raceEntry;
+
+        const createdRaceOutcome = await getProvider().addRaceOutcome(raceOutcome);
+
+        res.status(201).json({message: "RaceOutcome created successfully", raceOutcome: createdRaceOutcome});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.post('/race-outcome/update', upload.none(), async (req: Request, res: Response) => {
+    try {
+        const body = req.body;
+
+        if (!body) {
+            return res.status(400).json({error: "Body is required"});
+        }
+
+        const raceOutcome: RaceOutcome = body;
+        await getProvider().updateRaceOutcome(raceOutcome);
+
+        res.json({message: "RaceOutcome updated successfully", raceOutcome});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.post('/race-outcome/delete', upload.none(), async (req: Request, res: Response) => {
+    try {
+        const body = req.body;
+
+        if (!body) {
+            return res.status(400).json({error: "Body is required"});
+        }
+
+        const raceOutcome: RaceOutcome = body;
+        await getProvider().deleteRaceOutcome(raceOutcome);
+
+        res.json({message: "RaceOutcome deleted successfully"});
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
