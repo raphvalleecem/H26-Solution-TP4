@@ -12,6 +12,9 @@ const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatBy
 function confirmDelete() {
   router.push({ name: 'boat' })
 }
+
+
+
 </script>
 
 <template>

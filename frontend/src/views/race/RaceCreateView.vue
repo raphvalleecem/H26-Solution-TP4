@@ -23,7 +23,7 @@ async function createRace(payload: {
   raceClassId: number
   seriesId: number
 }) {
-  await addRace(payload)
+  await addRace({ ...payload, isCompleted: false })
   await router.push({ name: 'race' })
 }
 

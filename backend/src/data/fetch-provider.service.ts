@@ -95,7 +95,10 @@ export class FetchProvider {
     }
 
     public async getBoatClassById(id: number): Promise<BoatClass | null> {
-        return await AppDataSource.manager.findOneBy(BoatClass, {id});
+        return await AppDataSource.manager.findOne(BoatClass, {
+            where: {id},
+            relations: ["handicapType"],
+        });
     }
 
     //#endregion

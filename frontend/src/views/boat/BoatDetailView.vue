@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
 import { boatClasses } from '@/models/boatClasses.ts'
-import { findBoatById } from '@/models/boats.ts'
 import { raceEntries } from '@/models/raceEntries.ts'
-import { races } from '@/models/races.ts'
+import { getRaces, type Race } from '@/models/races.ts'
 import { seriesEntries } from '@/models/seriesEntries.ts'
 import { seriesRows } from '@/models/series.ts'
+import axios from 'axios'
 
 DataTable.use(DataTablesCore)
 
@@ -19,24 +19,39 @@ type BoatForm = {
   boatClassId: number
 }
 
+type BoatDetail = BoatForm & {
+  id: number
+  boatClassName: string | null
+}
+
+type BoatApi = {
+  id?: unknown
+  name?: unknown
+  sailNumber?: unknown
+  sail_number?: unknown
+  helmName?: unknown
+  helm_name?: unknown
+  boatClassId?: unknown
+  boat_class_id?: unknown
+  boatClass?: {
+    id?: unknown
+    name?: unknown
+    handicapValue?: unknown
+    handicap_value?: unknown
+    handicapTypeId?: unknown
+    handicap_type_id?: unknown
+    handicapType?: { id?: unknown; name?: unknown } | string | null
+  } | null
+}
+
 const route = useRoute()
 const boatId = computed(() => Number.parseInt(String(route.params.id), 10))
-const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)))
+const boat = ref<BoatDetail | null>(null)
+const races = ref<Race[]>([])
 
 const isEditing = ref(false)
 const form = reactive<BoatForm>({ name: '', sailNumber: 0, helmName: '', boatClassId: 0 })
 const original = ref<BoatForm | null>(null)
-
-if (boat.value) {
-  const seed: BoatForm = {
-    name: boat.value.name,
-    sailNumber: boat.value.sailNumber,
-    helmName: boat.value.helmName,
-    boatClassId: boat.value.boatClassId,
-  }
-  original.value = seed
-  Object.assign(form, seed)
-}
 
 const hasChanges = computed(() => {
   if (!original.value) {
@@ -46,27 +61,98 @@ const hasChanges = computed(() => {
 })
 
 const boatClassName = computed(() => {
-  return boatClasses.find((item) => item.id === form.boatClassId)?.name ?? '-'
+  return boat.value?.boatClassName ?? boatClasses.find((item) => item.id === form.boatClassId)?.name ?? '-'
 })
 
 const raceList = computed(() => {
   if (!boat.value) {
     return []
   }
+  const currentBoatId = boat.value.id
   return raceEntries
-    .filter((entry) => entry.boatId === boat.value!.id)
-    .map((entry) => races.find((race) => race.id === entry.raceId))
-    .filter((race): race is NonNullable<typeof race> => Boolean(race))
+    .filter((entry) => entry.boatId === currentBoatId)
+    .map((entry) => races.value.find((raceItem) => raceItem.id === entry.raceId))
+    .filter((raceItem): raceItem is Race => Boolean(raceItem))
 })
 
 const seriesList = computed(() => {
   if (!boat.value) {
     return []
   }
+  const currentBoatId = boat.value.id
   return seriesEntries
-    .filter((entry) => entry.boatId === boat.value!.id)
+    .filter((entry) => entry.boatId === currentBoatId)
     .map((entry) => seriesRows.find((series) => series.id === entry.seriesId))
     .filter((series): series is NonNullable<typeof series> => Boolean(series))
+})
+
+const isLoading = ref(true)
+const errorMessage = ref('')
+
+async function loadBoat() {
+  if (Number.isNaN(boatId.value)) {
+    boat.value = null
+    errorMessage.value = 'Invalid boat id.'
+    isLoading.value = false
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await axios.get<BoatApi>(`/boat-class/${boatId.value}`)
+    const loadedBoat = normalizeBoat(response.data)
+
+    boat.value = loadedBoat
+    const seed: BoatForm = {
+      name: loadedBoat.name,
+      sailNumber: loadedBoat.sailNumber,
+      helmName: loadedBoat.helmName,
+      boatClassId: loadedBoat.boatClassId,
+    }
+
+    Object.assign(form, seed)
+    original.value = { ...seed }
+    races.value = await getRaces()
+  } catch {
+    boat.value = null
+    errorMessage.value = 'Unable to load boat details. Please try again.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function toNumberOrNull(value: unknown): number | null {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function normalizeBoat(row: BoatApi): BoatDetail {
+  const boatClass =
+    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null
+
+  return {
+    id: toNumberOrNull(row.id) ?? 0,
+    name: typeof row.name === 'string' ? row.name : '',
+    sailNumber: toNumberOrNull(row.sailNumber ?? row.sail_number) ?? 0,
+    helmName:
+      typeof row.helmName === 'string'
+        ? row.helmName
+        : typeof row.helm_name === 'string'
+          ? row.helm_name
+          : '',
+    boatClassId: toNumberOrNull(row.boatClassId ?? row.boat_class_id) ?? toNumberOrNull(boatClass?.id) ?? 0,
+    boatClassName: typeof boatClass?.name === 'string' ? boatClass.name : null,
+  }
+}
+
+onMounted(() => {
+  void loadBoat()
+})
+
+watch(boatId, () => {
+  void loadBoat()
 })
 
 function startEdit() {
@@ -93,7 +179,9 @@ function saveChanges() {
   <section class="container mt-3">
     <h1>Boat details</h1>
 
-    <div v-if="!boat" class="alert alert-warning mt-3">Boat not found.</div>
+    <div v-if="isLoading" class="alert alert-info mt-3">Loading boat details...</div>
+    <div v-else-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+    <div v-else-if="!boat" class="alert alert-warning mt-3">Boat not found.</div>
 
     <div v-else>
       <table class="table table-bordered mt-3">

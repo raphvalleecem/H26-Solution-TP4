@@ -345,6 +345,26 @@ router.post('/boat-class/delete', upload.none(), async (req: Request, res: Respo
     }
 });
 
+router.get('/boat-class/:id', async (req: Request, res: Response) => {
+    try {
+        const parsedId = Number(req.params.id);
+
+        if (Number.isNaN(parsedId)) {
+            return res.status(400).json({error: "id must be a number"});
+        }
+
+        const boatClass = await getProvider().getBoatClassById(parsedId);
+
+        if (!boatClass) {
+            return res.status(404).json({error: "BoatClass not found"});
+        }
+
+        res.json(boatClass);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
 //#endregion
 
 //#region RaceClass
