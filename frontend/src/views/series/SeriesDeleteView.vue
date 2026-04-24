@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { findSeriesById } from '@/models/series.ts'
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { findSeriesById } from '@/models/series.ts';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const seriesId = computed(() => Number.parseInt(String(route.params.id), 10))
+const seriesId = computed(() => Number.parseInt(String(route.params.id), 10));
 const seriesItem = computed(() =>
   Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
-)
+);
 
 function confirmDelete() {
-  router.push({ name: 'series' })
+  router.push({ name: 'series' });
 }
 </script>
 

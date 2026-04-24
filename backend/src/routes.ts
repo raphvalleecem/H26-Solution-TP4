@@ -347,6 +347,30 @@ router.post('/boat-class/delete', upload.none(), async (req: Request, res: Respo
 
 //#endregion
 
+//#region HandicapType
+router.get('/handicap-type', async (req: Request, res: Response) => {
+    try {
+        const handicapTypes = await getProvider().getHandicapTypes();
+        res.json(handicapTypes);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+//#endregion
+
+//#region RaceClassType
+router.get('/race-class-type', async (req: Request, res: Response) => {
+    try {
+        const raceClassTypes = await getProvider().getRaceClassTypes();
+        res.json(raceClassTypes);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+//#endregion
+
 //#region RaceClass
 router.get('/race-class', async (req: Request, res: Response) => {
     try {

@@ -1,88 +1,88 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '@/models/boatClasses.ts'
-import { boats } from '@/models/boats.ts'
-import { handicapTypes } from '@/models/handicapTypes.ts'
-import { raceClasses } from '@/models/raceClasses.ts'
-import { races } from '@/models/races.ts'
+import { computed, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { boatClasses } from '@/models/boatClasses.ts';
+import { boats } from '@/models/boats.ts';
+import { handicapTypes } from '@/models/handicapTypes.ts';
+import { raceClasses } from '@/models/raceClasses.ts';
+import { races } from '@/models/races.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
-const route = useRoute()
-const classId = computed(() => Number.parseInt(String(route.params.id), 10))
+const route = useRoute();
+const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 const boatClass = computed(() => {
   if (Number.isNaN(classId.value)) {
-    return undefined
+    return undefined;
   }
-  return boatClasses.find((item) => item.id === classId.value)
-})
+  return boatClasses.find((item) => item.id === classId.value);
+});
 
-const isEditing = ref(false)
+const isEditing = ref(false);
 const form = reactive({
   name: '',
   handicapValue: 0,
   handicapTypeId: 1,
-})
-const original = ref('')
+});
+const original = ref('');
 
 if (boatClass.value) {
   Object.assign(form, {
     name: boatClass.value.name,
     handicapValue: boatClass.value.handicapValue,
     handicapTypeId: boatClass.value.handicapTypeId,
-  })
-  original.value = JSON.stringify(form)
+  });
+  original.value = JSON.stringify(form);
 }
 
-const hasChanges = computed(() => JSON.stringify(form) !== original.value)
+const hasChanges = computed(() => JSON.stringify(form) !== original.value);
 
 const handicapTypeName = computed(() => {
-  return handicapTypes.find((item) => item.id === form.handicapTypeId)?.name ?? '-'
-})
+  return handicapTypes.find((item) => item.id === form.handicapTypeId)?.name ?? '-';
+});
 
 const boatsInClass = computed(() => {
   if (!boatClass.value) {
-    return []
+    return [];
   }
-  return boats.filter((boat) => boat.boatClassId === boatClass.value!.id)
-})
+  return boats.filter((boat) => boat.boatClassId === boatClass.value!.id);
+});
 
 const racesInClass = computed(() => {
   if (!boatClass.value) {
-    return []
+    return [];
   }
   const monotypeClassIds = raceClasses
     .filter((raceClass) => raceClass.boatClassId === boatClass.value!.id)
-    .map((raceClass) => raceClass.id)
+    .map((raceClass) => raceClass.id);
 
-  return races.filter((race) => monotypeClassIds.includes(race.raceClassId))
-})
+  return races.filter((race) => monotypeClassIds.includes(race.raceClassId));
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (!boatClass.value) {
-    return
+    return;
   }
   Object.assign(form, {
     name: boatClass.value.name,
     handicapValue: boatClass.value.handicapValue,
     handicapTypeId: boatClass.value.handicapTypeId,
-  })
-  isEditing.value = false
+  });
+  isEditing.value = false;
 }
 
 function saveChanges() {
   if (!hasChanges.value) {
-    return
+    return;
   }
-  original.value = JSON.stringify(form)
-  isEditing.value = false
+  original.value = JSON.stringify(form);
+  isEditing.value = false;
 }
 </script>
 

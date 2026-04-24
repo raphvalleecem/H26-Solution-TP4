@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { findBoatById } from '@/models/boats.ts'
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { findBoatById } from '@/models/boats.ts';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const boatId = computed(() => Number.parseInt(String(route.params.id), 10))
-const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)))
+const boatId = computed(() => Number.parseInt(String(route.params.id), 10));
+const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)));
 
 function confirmDelete() {
-  router.push({ name: 'boat' })
+  router.push({ name: 'boat' });
 }
 </script>
 

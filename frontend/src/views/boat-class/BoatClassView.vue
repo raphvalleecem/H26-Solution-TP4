@@ -1,63 +1,63 @@
 <script lang="ts" setup>
-import axios from 'axios'
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { handicapTypes } from '@/models/handicapTypes.ts'
+import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { handicapTypes } from '@/models/handicapTypes.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
 type BoatClassRow = {
-  id: number
-  name: string
-  handicapValue: number
-  handicapTypeId: number | null
-  handicapTypeName: string | null
-}
+  id: number;
+  name: string;
+  handicapValue: number;
+  handicapTypeId: number | null;
+  handicapTypeName: string | null;
+};
 
 type BoatClassApiRow = {
-  id?: unknown
-  name?: unknown
-  handicapValue?: unknown
-  handicap_value?: unknown
-  handicapTypeId?: unknown
-  handicap_type_id?: unknown
-  handicapType?: { id?: unknown; name?: unknown } | string | null
-}
+  id?: unknown;
+  name?: unknown;
+  handicapValue?: unknown;
+  handicap_value?: unknown;
+  handicapTypeId?: unknown;
+  handicap_type_id?: unknown;
+  handicapType?: { id?: unknown; name?: unknown } | string | null;
+};
 
-const boatClasses = ref<BoatClassRow[]>([])
-const isLoading = ref(true)
-const errorMessage = ref('')
-const hasBoatClasses = computed(() => boatClasses.value.length > 0)
+const boatClasses = ref<BoatClassRow[]>([]);
+const isLoading = ref(true);
+const errorMessage = ref('');
+const hasBoatClasses = computed(() => boatClasses.value.length > 0);
 
 async function loadBoatClasses() {
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = '';
 
   try {
-    const response = await axios.get<BoatClassApiRow[]>('/boat-class')
-    boatClasses.value = response.data.map((row) => normalizeBoatClass(row))
+    const response = await axios.get<BoatClassApiRow[]>('/boat-class');
+    boatClasses.value = response.data.map((row) => normalizeBoatClass(row));
   } catch {
-    errorMessage.value = 'Unable to load boat classes. Please try again.'
+    errorMessage.value = 'Unable to load boat classes. Please try again.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 onMounted(() => {
-  void loadBoatClasses()
-})
+  void loadBoatClasses();
+});
 
 function toNumberOrNull(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function normalizeBoatClass(row: BoatClassApiRow): BoatClassRow {
   const handicapTypeObj =
-    typeof row.handicapType === 'object' && row.handicapType !== null ? row.handicapType : null
-  const fallbackTypeName = typeof row.handicapType === 'string' ? row.handicapType : null
+    typeof row.handicapType === 'object' && row.handicapType !== null ? row.handicapType : null;
+  const fallbackTypeName = typeof row.handicapType === 'string' ? row.handicapType : null;
 
   return {
     id: toNumberOrNull(row.id) ?? 0,
@@ -68,22 +68,22 @@ function normalizeBoatClass(row: BoatClassApiRow): BoatClassRow {
       toNumberOrNull(handicapTypeObj?.id),
     handicapTypeName:
       (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
-  }
+  };
 }
 
 function getHandicapTypeName(item: BoatClassRow): string {
   if (item.handicapTypeName) {
-    return item.handicapTypeName
+    return item.handicapTypeName;
   }
 
   if (item.handicapTypeId !== null) {
     return (
       handicapTypes.find((type) => type.id === item.handicapTypeId)?.name ??
       `#${item.handicapTypeId}`
-    )
+    );
   }
 
-  return 'Unknown'
+  return 'Unknown';
 }
 </script>
 

@@ -1,31 +1,31 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '@/models/boatClasses.ts'
-import { findBoatById } from '@/models/boats.ts'
-import { raceEntries } from '@/models/raceEntries.ts'
-import { races } from '@/models/races.ts'
-import { seriesEntries } from '@/models/seriesEntries.ts'
-import { seriesRows } from '@/models/series.ts'
+import { computed, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { boatClasses } from '@/models/boatClasses.ts';
+import { findBoatById } from '@/models/boats.ts';
+import { raceEntries } from '@/models/raceEntries.ts';
+import { races } from '@/models/races.ts';
+import { seriesEntries } from '@/models/seriesEntries.ts';
+import { seriesRows } from '@/models/series.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
 type BoatForm = {
-  name: string
-  sailNumber: number
-  helmName: string
-  boatClassId: number
-}
+  name: string;
+  sailNumber: number;
+  helmName: string;
+  boatClassId: number;
+};
 
-const route = useRoute()
-const boatId = computed(() => Number.parseInt(String(route.params.id), 10))
-const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)))
+const route = useRoute();
+const boatId = computed(() => Number.parseInt(String(route.params.id), 10));
+const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)));
 
-const isEditing = ref(false)
-const form = reactive<BoatForm>({ name: '', sailNumber: 0, helmName: '', boatClassId: 0 })
-const original = ref<BoatForm | null>(null)
+const isEditing = ref(false);
+const form = reactive<BoatForm>({ name: '', sailNumber: 0, helmName: '', boatClassId: 0 });
+const original = ref<BoatForm | null>(null);
 
 if (boat.value) {
   const seed: BoatForm = {
@@ -33,59 +33,59 @@ if (boat.value) {
     sailNumber: boat.value.sailNumber,
     helmName: boat.value.helmName,
     boatClassId: boat.value.boatClassId,
-  }
-  original.value = seed
-  Object.assign(form, seed)
+  };
+  original.value = seed;
+  Object.assign(form, seed);
 }
 
 const hasChanges = computed(() => {
   if (!original.value) {
-    return false
+    return false;
   }
-  return JSON.stringify(form) !== JSON.stringify(original.value)
-})
+  return JSON.stringify(form) !== JSON.stringify(original.value);
+});
 
 const boatClassName = computed(() => {
-  return boatClasses.find((item) => item.id === form.boatClassId)?.name ?? '-'
-})
+  return boatClasses.find((item) => item.id === form.boatClassId)?.name ?? '-';
+});
 
 const raceList = computed(() => {
   if (!boat.value) {
-    return []
+    return [];
   }
   return raceEntries
     .filter((entry) => entry.boatId === boat.value!.id)
     .map((entry) => races.find((race) => race.id === entry.raceId))
-    .filter((race): race is NonNullable<typeof race> => Boolean(race))
-})
+    .filter((race): race is NonNullable<typeof race> => Boolean(race));
+});
 
 const seriesList = computed(() => {
   if (!boat.value) {
-    return []
+    return [];
   }
   return seriesEntries
     .filter((entry) => entry.boatId === boat.value!.id)
     .map((entry) => seriesRows.find((series) => series.id === entry.seriesId))
-    .filter((series): series is NonNullable<typeof series> => Boolean(series))
-})
+    .filter((series): series is NonNullable<typeof series> => Boolean(series));
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (original.value) {
-    Object.assign(form, original.value)
+    Object.assign(form, original.value);
   }
-  isEditing.value = false
+  isEditing.value = false;
 }
 
 function saveChanges() {
   if (!hasChanges.value) {
-    return
+    return;
   }
-  original.value = { ...form }
-  isEditing.value = false
+  original.value = { ...form };
+  isEditing.value = false;
 }
 </script>
 

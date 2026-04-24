@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { boatClasses } from '@/models/boatClasses.ts'
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { boatClasses } from '@/models/boatClasses.ts';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const classId = computed(() => Number.parseInt(String(route.params.id), 10))
+const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 const boatClass = computed(() => {
   if (Number.isNaN(classId.value)) {
-    return undefined
+    return undefined;
   }
-  return boatClasses.find((item) => item.id === classId.value)
-})
+  return boatClasses.find((item) => item.id === classId.value);
+});
 
 function confirmDelete() {
-  router.push({ name: 'boat-class' })
+  router.push({ name: 'boat-class' });
 }
 </script>
 

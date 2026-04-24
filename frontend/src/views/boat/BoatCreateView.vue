@@ -1,105 +1,105 @@
 <script lang="ts" setup>
-import axios from 'axios'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import BoatForm from '../../components/BoatForm.vue'
+import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import BoatForm from '../../components/BoatForm.vue';
 
-const router = useRouter()
+const router = useRouter();
 
 type BoatClassOption = {
-  id: number
-  name: string
-}
+  id: number;
+  name: string;
+};
 
 type BoatClassApiRow = {
-  id?: unknown
-  name?: unknown
-}
+  id?: unknown;
+  name?: unknown;
+};
 
-const boatClasses = ref<BoatClassOption[]>([])
-const isLoadingBoatClasses = ref(true)
-const isSubmitting = ref(false)
-const errorMessage = ref('')
-const hasBoatClasses = computed(() => boatClasses.value.length > 0)
+const boatClasses = ref<BoatClassOption[]>([]);
+const isLoadingBoatClasses = ref(true);
+const isSubmitting = ref(false);
+const errorMessage = ref('');
+const hasBoatClasses = computed(() => boatClasses.value.length > 0);
 
 onMounted(() => {
-  void loadBoatClasses()
-})
+  void loadBoatClasses();
+});
 
 async function loadBoatClasses() {
-  isLoadingBoatClasses.value = true
-  errorMessage.value = ''
+  isLoadingBoatClasses.value = true;
+  errorMessage.value = '';
 
   try {
-    const response = await axios.get<BoatClassApiRow[]>('/boat-classes')
+    const response = await axios.get<BoatClassApiRow[]>('/boat-classes');
     boatClasses.value = response.data
       .map((row) => ({
         id: Number(row.id),
         name: typeof row.name === 'string' ? row.name : '',
       }))
-      .filter((row) => Number.isFinite(row.id) && row.name !== '')
+      .filter((row) => Number.isFinite(row.id) && row.name !== '');
   } catch {
-    errorMessage.value = 'Unable to load boat classes. Please try again.'
+    errorMessage.value = 'Unable to load boat classes. Please try again.';
   } finally {
-    isLoadingBoatClasses.value = false
+    isLoadingBoatClasses.value = false;
   }
 }
 
 function getApiErrorMessage(payload: unknown): string | null {
   if (typeof payload === 'string') {
-    return payload
+    return payload;
   }
 
   if (payload && typeof payload === 'object') {
     if ('error' in payload && typeof (payload as { error?: unknown }).error === 'string') {
-      return (payload as { error: string }).error
+      return (payload as { error: string }).error;
     }
 
     if ('message' in payload && typeof (payload as { message?: unknown }).message === 'string') {
-      return (payload as { message: string }).message
+      return (payload as { message: string }).message;
     }
   }
 
-  return null
+  return null;
 }
 
 async function createBoat(payload: {
-  name: string
-  boatClassId: number
-  sailNumber: number
-  helmName: string
+  name: string;
+  boatClassId: number;
+  sailNumber: number;
+  helmName: string;
 }) {
   if (isSubmitting.value) {
-    return
+    return;
   }
 
-  errorMessage.value = ''
-  isSubmitting.value = true
+  errorMessage.value = '';
+  isSubmitting.value = true;
 
   try {
-    const body = new FormData()
-    body.append('name', payload.name)
-    body.append('boatClassId', String(payload.boatClassId))
-    body.append('sailNumber', String(payload.sailNumber))
-    body.append('helmName', payload.helmName)
+    const body = new FormData();
+    body.append('name', payload.name);
+    body.append('boatClassId', String(payload.boatClassId));
+    body.append('sailNumber', String(payload.sailNumber));
+    body.append('helmName', payload.helmName);
 
-    await axios.post('/boat/create', body)
-    await router.push({ name: 'boat' })
+    await axios.post('/boat/create', body);
+    await router.push({ name: 'boat' });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       errorMessage.value =
-        getApiErrorMessage(error.response?.data) ?? 'Unable to create boat. Please try again.'
-      return
+        getApiErrorMessage(error.response?.data) ?? 'Unable to create boat. Please try again.';
+      return;
     }
 
-    errorMessage.value = 'An unexpected error occurred. Please try again.'
+    errorMessage.value = 'An unexpected error occurred. Please try again.';
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
 }
 
 function cancel() {
-  router.push({ name: 'boat' })
+  router.push({ name: 'boat' });
 }
 </script>
 

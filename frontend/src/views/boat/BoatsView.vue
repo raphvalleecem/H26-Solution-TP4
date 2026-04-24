@@ -1,82 +1,82 @@
 <script lang="ts" setup>
-import axios from 'axios'
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { handicapTypes } from '@/models/handicapTypes.ts'
+import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { handicapTypes } from '@/models/handicapTypes.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
 type BoatRow = {
-  id: number
-  name: string
-  sailNumber: number
-  helmName: string
-  boatClassId: number | null
-  boatClassName: string | null
-  handicapValue: number | null
-  handicapTypeId: number | null
-  handicapTypeName: string | null
-}
+  id: number;
+  name: string;
+  sailNumber: number;
+  helmName: string;
+  boatClassId: number | null;
+  boatClassName: string | null;
+  handicapValue: number | null;
+  handicapTypeId: number | null;
+  handicapTypeName: string | null;
+};
 
 type BoatApiRow = {
-  id?: unknown
-  name?: unknown
-  sailNumber?: unknown
-  sail_number?: unknown
-  helmName?: unknown
-  helm_name?: unknown
-  boatClassId?: unknown
-  boat_class_id?: unknown
+  id?: unknown;
+  name?: unknown;
+  sailNumber?: unknown;
+  sail_number?: unknown;
+  helmName?: unknown;
+  helm_name?: unknown;
+  boatClassId?: unknown;
+  boat_class_id?: unknown;
   boatClass?: {
-    id?: unknown
-    name?: unknown
-    handicapValue?: unknown
-    handicap_value?: unknown
-    handicapTypeId?: unknown
-    handicap_type_id?: unknown
-    handicapType?: { id?: unknown; name?: unknown } | string | null
-  } | null
-}
+    id?: unknown;
+    name?: unknown;
+    handicapValue?: unknown;
+    handicap_value?: unknown;
+    handicapTypeId?: unknown;
+    handicap_type_id?: unknown;
+    handicapType?: { id?: unknown; name?: unknown } | string | null;
+  } | null;
+};
 
-const boats = ref<BoatRow[]>([])
-const isLoading = ref(true)
-const errorMessage = ref('')
-const hasBoats = computed(() => boats.value.length > 0)
+const boats = ref<BoatRow[]>([]);
+const isLoading = ref(true);
+const errorMessage = ref('');
+const hasBoats = computed(() => boats.value.length > 0);
 
 async function loadBoats() {
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = '';
 
   try {
-    const response = await axios.get<BoatApiRow[]>('/boat')
-    boats.value = response.data.map((row) => normalizeBoat(row))
+    const response = await axios.get<BoatApiRow[]>('/boat');
+    boats.value = response.data.map((row) => normalizeBoat(row));
   } catch {
-    errorMessage.value = 'Unable to load boats. Please try again.'
+    errorMessage.value = 'Unable to load boats. Please try again.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 onMounted(() => {
-  void loadBoats()
-})
+  void loadBoats();
+});
 
 function toNumberOrNull(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function normalizeBoat(row: BoatApiRow): BoatRow {
   const boatClass =
-    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null
+    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null;
   const handicapTypeObj =
     typeof boatClass?.handicapType === 'object' && boatClass.handicapType !== null
       ? boatClass.handicapType
-      : null
+      : null;
   const fallbackTypeName =
-    typeof boatClass?.handicapType === 'string' ? boatClass.handicapType : null
+    typeof boatClass?.handicapType === 'string' ? boatClass.handicapType : null;
 
   return {
     id: toNumberOrNull(row.id) ?? 0,
@@ -97,34 +97,34 @@ function normalizeBoat(row: BoatApiRow): BoatRow {
       toNumberOrNull(handicapTypeObj?.id),
     handicapTypeName:
       (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
-  }
+  };
 }
 
 function getBoatClassLabel(boat: BoatRow): string {
   if (boat.boatClassName) {
-    return boat.boatClassName
+    return boat.boatClassName;
   }
 
   if (boat.boatClassId !== null) {
-    return `#${boat.boatClassId}`
+    return `#${boat.boatClassId}`;
   }
 
-  return '-'
+  return '-';
 }
 
 function getHandicapName(boat: BoatRow): string {
   if (boat.handicapTypeName) {
-    return boat.handicapTypeName
+    return boat.handicapTypeName;
   }
 
   if (boat.handicapTypeId !== null) {
     return (
       handicapTypes.find((item) => item.id === boat.handicapTypeId)?.name ??
       `#${boat.handicapTypeId}`
-    )
+    );
   }
 
-  return '-'
+  return '-';
 }
 </script>
 

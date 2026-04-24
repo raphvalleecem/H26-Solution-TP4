@@ -1,14 +1,14 @@
-export type RaceOutcomeResult = 'DNS' | 'OCS' | 'DNF' | 'RTD' | 'DSQ' | ''
+export type RaceOutcomeResult = 'DNS' | 'OCS' | 'DNF' | 'RTD' | 'DSQ' | '';
 
 export type RaceOutcome = {
-  id: number
-  result: RaceOutcomeResult
-  position?: number
-  finishTime?: string
-  elapsedTime?: number
-  correctedTime?: number
-  raceEntryId: number
-}
+  id: number;
+  result: RaceOutcomeResult;
+  position?: number;
+  finishTime?: string;
+  elapsedTime?: number;
+  correctedTime?: number;
+  raceEntryId: number;
+};
 
 export const raceOutcomes: RaceOutcome[] = [
   {
@@ -43,8 +43,8 @@ export const raceOutcomes: RaceOutcome[] = [
     correctedTime: 3960,
     raceEntryId: 8,
   },
-]
+];
 
 export function findRaceOutcomeByEntryId(raceEntryId: number): RaceOutcome | undefined {
-  return raceOutcomes.find((row) => row.raceEntryId === raceEntryId)
+  return raceOutcomes.find((row) => row.raceEntryId === raceEntryId);
 }
