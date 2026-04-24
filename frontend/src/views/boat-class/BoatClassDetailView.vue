@@ -6,7 +6,6 @@ import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
 import { boats } from '@/models/boats.ts'
 import { handicapTypes } from '@/models/handicapTypes.ts'
-import { raceClasses } from '@/models/raceClasses.ts'
 
 DataTable.use(DataTablesCore)
 
@@ -71,12 +70,24 @@ function cancelEdit() {
   isEditing.value = false
 }
 
-function saveChanges() {
-  if (!hasChanges.value) {
+async function saveChanges() {
+  if (!hasChanges.value || !boatClass.value) {
     return
   }
-  original.value = JSON.stringify(form)
-  isEditing.value = false
+
+  try {
+    await axios.post('/boat-class/update', {
+      id: boatClass.value.id,
+      name: form.name,
+      handicapValue: form.handicapValue,
+      handicapTypeId: form.handicapTypeId,
+    })
+    original.value = JSON.stringify(form)
+    isEditing.value = false
+    errorMessage.value = ''
+  } catch {
+    errorMessage.value = 'Unable to save boat class. Please try again.'
+  }
 }
 
 function toNumberOrNull(value: unknown): number | null {
