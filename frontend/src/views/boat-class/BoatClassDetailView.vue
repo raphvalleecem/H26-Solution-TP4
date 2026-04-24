@@ -4,7 +4,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boats } from '@/models/boats.ts'
 import { handicapTypes } from '@/models/handicapTypes.ts'
 
 DataTable.use(DataTablesCore)
@@ -27,11 +26,19 @@ type BoatClassApiRow = {
   handicapType?: { id?: unknown; name?: unknown } | string | null
 }
 
+type Boat = {
+  id: number
+  name: string
+  helmName: string
+  boatClassId: number
+}
+
 const route = useRoute()
 const classId = computed(() => Number.parseInt(String(route.params.id), 10))
 const boatClass = ref<BoatClassDetail | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
+const boatsInClass = ref<Boat[]>([])
 
 const isEditing = ref(false)
 const form = reactive({
@@ -45,13 +52,6 @@ const hasChanges = computed(() => JSON.stringify(form) !== original.value)
 
 const handicapTypeName = computed(() => {
   return handicapTypes.find((item) => item.id === form.handicapTypeId)?.name ?? '-'
-})
-
-const boatsInClass = computed(() => {
-  if (!boatClass.value) {
-    return []
-  }
-  return boats.filter((boat) => boat.boatClassId === boatClass.value!.id)
 })
 
 function startEdit() {
@@ -143,12 +143,30 @@ async function loadBoatClass() {
   }
 }
 
+async function loadBoatsInClass() {
+  if (!boatClass.value) {
+    boatsInClass.value = []
+    return
+  }
+
+  try {
+    const response = await axios.get<Boat[]>(`/boat?classId=${boatClass.value.id}`)
+    boatsInClass.value = response.data
+  } catch {
+    boatsInClass.value = []
+  }
+}
+
 onMounted(() => {
   void loadBoatClass()
 })
 
 watch(classId, () => {
   void loadBoatClass()
+})
+
+watch(boatClass, () => {
+  void loadBoatsInClass()
 })
 </script>
 
