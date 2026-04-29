@@ -1,25 +1,48 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import axios from 'axios'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
 import { boatClasses } from '@/models/boatClasses.ts'
 import { handicapTypes } from '@/models/handicapTypes.ts'
-import { raceClasses } from '@/models/raceClasses.ts'
 import { raceClassTypes } from '@/models/raceClassTypes.ts'
-import { races } from '@/models/races.ts'
-import { seriesRows } from '@/models/series.ts'
+import { getRaces, type Race } from '@/models/races.ts'
+import { getSeries, seriesRows } from '@/models/series.ts'
 
 DataTable.use(DataTablesCore)
 
+type RaceClassDetail = {
+  id: number
+  name: string
+  minHandicap: number | null
+  maxHandicap: number | null
+  handicapTypeId: number | null
+  raceClassTypeId: number
+  boatClassId: number | null
+}
+
+type RaceClassApiRow = {
+  id?: unknown
+  name?: unknown
+  minHandicap?: unknown
+  min_handicap?: unknown
+  maxHandicap?: unknown
+  max_handicap?: unknown
+  handicapTypeId?: unknown
+  handicap_type_id?: unknown
+  raceClassTypeId?: unknown
+  race_class_type_id?: unknown
+  boatClassId?: unknown
+  boat_class_id?: unknown
+}
+
 const route = useRoute()
 const classId = computed(() => Number.parseInt(String(route.params.id), 10))
-const raceClass = computed(() => {
-  if (Number.isNaN(classId.value)) {
-    return undefined
-  }
-  return raceClasses.find((item) => item.id === classId.value)
-})
+const raceClass = ref<RaceClassDetail | null>(null)
+const races = ref<Race[]>([])
+const isLoading = ref(true)
+const errorMessage = ref('')
 
 const isEditing = ref(false)
 const form = reactive({
@@ -31,18 +54,6 @@ const form = reactive({
   boatClassId: '' as string | number,
 })
 const original = ref('')
-
-if (raceClass.value) {
-  Object.assign(form, {
-    name: raceClass.value.name,
-    minHandicap: raceClass.value.minHandicap ?? '',
-    maxHandicap: raceClass.value.maxHandicap ?? '',
-    handicapTypeId: raceClass.value.handicapTypeId ?? '',
-    raceClassTypeId: raceClass.value.raceClassTypeId,
-    boatClassId: raceClass.value.boatClassId ?? '',
-  })
-  original.value = JSON.stringify(form)
-}
 
 const hasChanges = computed(() => JSON.stringify(form) !== original.value)
 
@@ -70,7 +81,7 @@ const relatedRaces = computed(() => {
   if (!raceClass.value) {
     return []
   }
-  return races.filter((race) => race.raceClassId === raceClass.value!.id)
+  return races.value.filter((race) => race.raceClassId === raceClass.value!.id)
 })
 
 const relatedSeries = computed(() => {
@@ -99,20 +110,100 @@ function cancelEdit() {
   isEditing.value = false
 }
 
-function saveChanges() {
-  if (!hasChanges.value) {
+async function saveChanges() {
+  if (!hasChanges.value || !raceClass.value) {
     return
   }
-  original.value = JSON.stringify(form)
-  isEditing.value = false
+
+  try {
+    await axios.post('/race-class/update', {
+      id: raceClass.value.id,
+      name: form.name,
+      minHandicap: form.minHandicap === '' ? null : Number(form.minHandicap),
+      maxHandicap: form.maxHandicap === '' ? null : Number(form.maxHandicap),
+      handicapTypeId: form.handicapTypeId === '' ? null : Number(form.handicapTypeId),
+      raceClassTypeId: Number(form.raceClassTypeId),
+      boatClassId: form.boatClassId === '' ? null : Number(form.boatClassId),
+    })
+    original.value = JSON.stringify(form)
+    isEditing.value = false
+    errorMessage.value = ''
+  } catch {
+    errorMessage.value = 'Unable to save race class. Please try again.'
+  }
 }
+
+function toNumberOrNull(value: unknown): number | null {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+async function loadRaceClass() {
+  if (Number.isNaN(classId.value)) {
+    raceClass.value = null
+    errorMessage.value = 'Invalid race class id.'
+    isLoading.value = false
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await axios.get<RaceClassApiRow>(`/race-class/${classId.value}`)
+    const row = response.data
+
+    const loadedRaceClass: RaceClassDetail = {
+      id: toNumberOrNull(row.id) ?? 0,
+      name: typeof row.name === 'string' ? row.name : '',
+      minHandicap: toNumberOrNull(row.minHandicap ?? row.min_handicap),
+      maxHandicap: toNumberOrNull(row.maxHandicap ?? row.max_handicap),
+      handicapTypeId: toNumberOrNull(row.handicapTypeId ?? row.handicap_type_id),
+      raceClassTypeId: toNumberOrNull(row.raceClassTypeId ?? row.race_class_type_id) ?? 1,
+      boatClassId: toNumberOrNull(row.boatClassId ?? row.boat_class_id),
+    }
+
+    raceClass.value = loadedRaceClass
+    Object.assign(form, {
+      name: loadedRaceClass.name,
+      minHandicap: loadedRaceClass.minHandicap ?? '',
+      maxHandicap: loadedRaceClass.maxHandicap ?? '',
+      handicapTypeId: loadedRaceClass.handicapTypeId ?? '',
+      raceClassTypeId: loadedRaceClass.raceClassTypeId,
+      boatClassId: loadedRaceClass.boatClassId ?? '',
+    })
+    original.value = JSON.stringify(form)
+
+    // Attempt loading related races/series
+    try {
+      races.value = await getRaces()
+    } catch {}
+    try { await getSeries() } catch {}
+
+  } catch {
+    raceClass.value = null
+    errorMessage.value = 'Unable to load race class details. Please try again.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  void loadRaceClass()
+})
+
+watch(classId, () => {
+  void loadRaceClass()
+})
 </script>
 
 <template>
   <section class="container mt-3">
     <h1>Race class details</h1>
 
-    <div v-if="!raceClass" class="alert alert-warning mt-3">Race class not found.</div>
+    <div v-if="isLoading" class="alert alert-info mt-3">Loading race class details...</div>
+    <div v-else-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+    <div v-else-if="!raceClass" class="alert alert-warning mt-3">Race class not found.</div>
 
     <div v-else>
       <table class="table table-bordered mt-3">
