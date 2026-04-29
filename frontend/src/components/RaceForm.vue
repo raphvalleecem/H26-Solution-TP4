@@ -9,7 +9,7 @@ type RaceFormPayload = {
   startTime: string
   course: string
   raceClassId: number
-  seriesId: number
+  seriesId?: number | null
   isCompleted?: boolean
 }
 
@@ -28,7 +28,7 @@ const props = withDefaults(
       startTime: '',
       course: '',
       raceClassId: 1,
-      seriesId: 1,
+      seriesId: null,
       isCompleted: false,
     }),
   },
@@ -94,7 +94,8 @@ function onSubmit() {
 
       <div class="form-group">
         <label for="series-id">Series</label>
-        <select id="series-id" v-model.number="form.seriesId" class="form-control" required>
+        <select id="series-id" v-model="form.seriesId" class="form-control" required>
+          <option :value="null">Hors-série</option>
           <option v-for="item in seriesRows" :key="item.id" :value="item.id">
             {{ item.name }}
           </option>

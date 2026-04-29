@@ -7,7 +7,7 @@ export type Race = {
   startTime: string
   course: string
   raceClassId: number
-  seriesId: number
+  seriesId?: number
   isCompleted: boolean
 }
 
@@ -35,7 +35,9 @@ export async function getRaces(): Promise<Race[]> {
   }
 }
 
-export async function addRace(formData: Omit<Race, 'id'>): Promise<void> {
+export async function addRace(
+  formData: Omit<Race, 'id' | 'seriesId'> & { seriesId?: number },
+): Promise<void> {
   try {
     const response = await axios.post('http://localhost:3000/race/create', formData)
     console.log('Success:', response.data)

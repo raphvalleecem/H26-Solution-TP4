@@ -36,21 +36,28 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "raceClassId is required"});
         }
 
-        if (seriesId === undefined || seriesId === null) {
-            return res.status(400).json({error: "seriesId is required"});
+        let parsedStartTime = new Date(startTime);
+        const parsedRaceClassId = Number(raceClassId);
+        let parsedSeriesId: number | null = null;
+        if (seriesId !== undefined && seriesId !== null && String(seriesId).trim() !== "") {
+            parsedSeriesId = Number(seriesId);
+            if (Number.isNaN(parsedSeriesId)) {
+                return res.status(400).json({error: "seriesId must be a number"});
+            }
         }
 
-        const parsedStartTime = new Date(startTime);
-        const parsedRaceClassId = Number(raceClassId);
-        const parsedSeriesId = Number(seriesId);
+        if (Number.isNaN(parsedStartTime.getTime()) && typeof startTime === "string") {
+            const normalizedStartTime = startTime.replace(" ", "T");
+            parsedStartTime = new Date(normalizedStartTime);
+        }
 
-        // if (Number.isNaN(parsedStartTime.getTime())) {
-        //     return res.status(400).json({error: "startTime must be a valid date"});
-        // }
-        //
-        // if (Number.isNaN(parsedRaceClassId)) {
-        //     return res.status(400).json({error: "raceClassId must be a number"});
-        // }
+        if (Number.isNaN(parsedStartTime.getTime())) {
+            return res.status(400).json({error: "startTime must be a valid date"});
+        }
+
+        if (Number.isNaN(parsedRaceClassId)) {
+            return res.status(400).json({error: "raceClassId must be a number"});
+        }
         //
         // if (Number.isNaN(parsedSeriesId)) {
         //     return res.status(400).json({error: "seriesId must be a number"});
@@ -62,18 +69,21 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(404).json({error: "RaceClass not found"});
         }
 
-        // const series = await getProvider().getSeriesById(parsedSeriesId);
+        let series;
+        if (parsedSeriesId !== null) {
+            series = await getProvider().getSeriesById(parsedSeriesId);
 
-        // if (!series) {
-        //     return res.status(404).json({error: "Series not found"});
-        // }
+            if (!series) {
+                return res.status(404).json({error: "Series not found"});
+            }
+        }
 
         const race = new Race();
         race.name = String(name).trim();
         race.startTime = parsedStartTime;
         race.course = String(course).trim();
         race.raceClass = raceClass;
-        // race.series = series;
+        race.series = series ?? null;
 
         const createdRace = await getProvider().addRace(race);
 

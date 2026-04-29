@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export type Series = {
   id: number
   name: string
@@ -23,23 +25,13 @@ export const seriesRows: Series[] = [
 ]
 
 export async function getSeries(): Promise<Series[]> {
-  // try {
-  //   const response = await axios.get<SeriesRow[]>('http://localhost:3000/series') DOESNT EXIST YET
-  //   return response.data
-  // } catch (error) {
-  //   console.error('Error:', error)
-  //   return []
-  // }
-  return [
-    {
-      id: 1,
-      name: 'SerieTest',
-      nbRaces: 0,
-      nbRacesToCount: 0,
-      raceClassId: 0,
-      isCompleted: false,
-    },
-  ]
+  try {
+    const response = await axios.get<Series[]>('http://localhost:3000/series')
+    return response.data
+  } catch (error) {
+    console.error('Error:', error)
+    return []
+  }
 }
 
 export function findSeriesById(id: number): Series | undefined {

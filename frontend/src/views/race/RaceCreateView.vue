@@ -21,9 +21,15 @@ async function createRace(payload: {
   startTime: string
   course: string
   raceClassId: number
-  seriesId: number
+  seriesId?: number | null
 }) {
-  await addRace({ ...payload, isCompleted: false })
+  const { seriesId, ...rest } = payload
+  const requestPayload = {
+    ...rest,
+    ...(seriesId == null ? {} : { seriesId }),
+    isCompleted: false,
+  }
+  await addRace(requestPayload)
   await router.push({ name: 'race' })
 }
 

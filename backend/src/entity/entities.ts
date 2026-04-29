@@ -114,8 +114,8 @@ export class Race {
     @ManyToOne(() => RaceClass)
     raceClass!: RaceClass;
 
-    @ManyToOne(() => Series)
-    series!: Series;
+    @ManyToOne(() => Series, {nullable: true})
+    series!: Series | null;
 }
 
 @Entity()
