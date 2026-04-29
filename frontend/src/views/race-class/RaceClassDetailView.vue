@@ -1,4 +1,15 @@
 <script lang="ts" setup>
+import axios from 'axios';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { boatClasses } from '@/models/boatClasses.ts';
+import { handicapTypes } from '@/models/handicapTypes.ts';
+import { raceClasses } from '@/models/raceClasses.ts';
+import { raceClassTypes } from '@/models/raceClassTypes.ts';
+import { getRaces, type Race } from '@/models/races.ts';
+import { getSeries, seriesRows } from '@/models/series.ts';
 import axios from 'axios'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -10,8 +21,19 @@ import { raceClassTypes } from '@/models/raceClassTypes.ts'
 import { getRaces, type Race } from '@/models/races.ts'
 import { getSeries, seriesRows } from '@/models/series.ts'
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
+const route = useRoute();
+const classId = computed(() => Number.parseInt(String(route.params.id), 10));
+const raceClass = computed(() => {
+  if (Number.isNaN(classId.value)) {
+    return undefined;
+  }
+  return raceClasses.find((item) => item.id === classId.value);
+});
+const races = ref<Race[]>([])
+const isLoading = ref(true)
+const errorMessage = ref('')
 type RaceClassDetail = {
   id: number
   name: string
@@ -44,7 +66,7 @@ const races = ref<Race[]>([])
 const isLoading = ref(true)
 const errorMessage = ref('')
 
-const isEditing = ref(false)
+const isEditing = ref(false);
 const form = reactive({
   name: '',
   minHandicap: '' as string | number,
@@ -52,52 +74,64 @@ const form = reactive({
   handicapTypeId: '' as string | number,
   raceClassTypeId: 1,
   boatClassId: '' as string | number,
-})
-const original = ref('')
+});
+const original = ref('');
 
-const hasChanges = computed(() => JSON.stringify(form) !== original.value)
+if (raceClass.value) {
+  Object.assign(form, {
+    name: raceClass.value.name,
+    minHandicap: raceClass.value.minHandicap ?? '',
+    maxHandicap: raceClass.value.maxHandicap ?? '',
+    handicapTypeId: raceClass.value.handicapTypeId ?? '',
+    raceClassTypeId: raceClass.value.raceClassTypeId,
+    boatClassId: raceClass.value.boatClassId ?? '',
+  });
+  original.value = JSON.stringify(form);
+}
+
+const hasChanges = computed(() => JSON.stringify(form) !== original.value);
 
 const raceClassTypeName = computed(() => {
-  return raceClassTypes.find((row) => row.id === Number(form.raceClassTypeId))?.name ?? '-'
-})
+  return raceClassTypes.find((row) => row.id === Number(form.raceClassTypeId))?.name ?? '-';
+});
 
 const handicapTypeName = computed(() => {
-  const value = Number(form.handicapTypeId)
+  const value = Number(form.handicapTypeId);
   if (!value) {
-    return '-'
+    return '-';
   }
-  return handicapTypes.find((row) => row.id === value)?.name ?? '-'
-})
+  return handicapTypes.find((row) => row.id === value)?.name ?? '-';
+});
 
 const boatClassName = computed(() => {
-  const value = Number(form.boatClassId)
+  const value = Number(form.boatClassId);
   if (!value) {
-    return '-'
+    return '-';
   }
-  return boatClasses.find((row) => row.id === value)?.name ?? '-'
-})
+  return boatClasses.find((row) => row.id === value)?.name ?? '-';
+});
 
 const relatedRaces = computed(() => {
   if (!raceClass.value) {
-    return []
+    return [];
   }
-  return races.value.filter((race) => race.raceClassId === raceClass.value!.id)
-})
+  return races.value.filter((race) => race.raceClassId === raceClass.value!.id);
+});
 
 const relatedSeries = computed(() => {
   if (!raceClass.value) {
-    return []
+    return [];
   }
-  return seriesRows.filter((seriesItem) => seriesItem.raceClassId === raceClass.value!.id)
-})
+  return seriesRows.filter((seriesItem) => seriesItem.raceClassId === raceClass.value!.id);
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (!raceClass.value) {
-    return
+    return;
   }
   Object.assign(form, {
     name: raceClass.value.name,
@@ -106,14 +140,16 @@ function cancelEdit() {
     handicapTypeId: raceClass.value.handicapTypeId ?? '',
     raceClassTypeId: raceClass.value.raceClassTypeId,
     boatClassId: raceClass.value.boatClassId ?? '',
-  })
-  isEditing.value = false
+  });
+  isEditing.value = false;
 }
 
 async function saveChanges() {
   if (!hasChanges.value || !raceClass.value) {
     return
   }
+  original.value = JSON.stringify(form);
+  isEditing.value = false;
 
   try {
     await axios.post('/race-class/update', {

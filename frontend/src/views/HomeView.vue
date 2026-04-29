@@ -2,13 +2,13 @@
 const topTiles = [
   { label: 'Race', path: '/race' },
   { label: 'Series', path: '/series' },
-]
+];
 
 const bottomTiles = [
   { label: 'Boat', path: '/boat' },
   { label: 'Boat classes', path: '/boat-class' },
   { label: 'Race classes', path: '/race-class' },
-]
+];
 </script>
 
 <template>

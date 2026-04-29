@@ -3,6 +3,7 @@ import router from './routes';
 import cors from 'cors';
 import {AppDataSource} from "./data-source";
 import {FetchProvider} from "./data/fetch-provider.service";
+import {seedHandicapType, seedRaceClassType} from "./data/seed";
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -19,10 +20,13 @@ app.use('/', router);
 
 async function startServer() {
     try {
-        await AppDataSource.initialize();
+        await AppDataSource.initialize().then(async (connection) => {
+            await seedHandicapType(connection);
+            await seedRaceClassType(connection)
+            console.log("Seeding complete!");
+        });
 
         const fetchProvider = new FetchProvider();
-        await fetchProvider.ensureDefaultHandicapTypes();
 
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`);

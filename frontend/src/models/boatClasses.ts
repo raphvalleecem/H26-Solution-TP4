@@ -1,9 +1,9 @@
 export type BoatClass = {
-  id: number
-  name: string
-  handicapValue: number
-  handicapTypeId: number
-}
+  id: number;
+  name: string;
+  handicapValue: number;
+  handicapTypeId: number;
+};
 
 export const boatClasses: BoatClass[] = [
   { id: 1, name: 'Boat class 1', handicapValue: 1110, handicapTypeId: 1 },
@@ -18,8 +18,8 @@ export const boatClasses: BoatClass[] = [
   { id: 10, name: 'Boat class 10', handicapValue: 0.97, handicapTypeId: 2 },
   { id: 11, name: 'Boat class 11', handicapValue: 1185, handicapTypeId: 1 },
   { id: 12, name: 'Boat class 12', handicapValue: 1.08, handicapTypeId: 2 },
-]
+];
 
 export function findBoatClassById(id: number): BoatClass | undefined {
-  return boatClasses.find((row) => row.id === id)
+  return boatClasses.find((row) => row.id === id);
 }

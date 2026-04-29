@@ -1,13 +1,13 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
-const route = useRoute()
+const route = useRoute();
 
 const breadcrumbs = computed(() => {
-  const pathParts = route.path.split('/').filter(Boolean)
+  const pathParts = route.path.split('/').filter(Boolean);
   if (pathParts.length === 0) {
-    return []
+    return [];
   }
 
   const labels: Record<string, string> = {
@@ -18,29 +18,29 @@ const breadcrumbs = computed(() => {
     'race-class': 'Race classes',
     delete: 'Delete',
     create: 'Create',
-  }
+  };
 
-  let currentPath = ''
+  let currentPath = '';
   const items = [
     {
       path: '/',
       name: 'Home',
       isLast: false,
     },
-  ]
+  ];
 
   pathParts.forEach((part, index) => {
-    currentPath += `/${part}`
-    const parsed = Number.parseInt(part, 10)
+    currentPath += `/${part}`;
+    const parsed = Number.parseInt(part, 10);
     items.push({
       path: currentPath,
       name: Number.isNaN(parsed) ? (labels[part] ?? part) : `#${parsed}`,
       isLast: index === pathParts.length - 1,
-    })
-  })
+    });
+  });
 
-  return items
-})
+  return items;
+});
 </script>
 
 <template>

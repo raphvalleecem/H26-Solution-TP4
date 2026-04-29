@@ -126,24 +126,6 @@ export class FetchProvider {
         return await AppDataSource.manager.findOneBy(HandicapType, {id});
     }
 
-    public async ensureDefaultHandicapTypes(): Promise<void> {
-        const requiredNames = ["PY", "TMF"];
-        const handicapTypes = await AppDataSource.manager.find(HandicapType);
-        const existingNames = new Set(handicapTypes.map((ht: HandicapType) => ht.name));
-
-        const missing = requiredNames
-            .filter((name) => !existingNames.has(name))
-            .map((name) => {
-                const handicapType = new HandicapType();
-                handicapType.name = name;
-                return handicapType;
-            });
-
-        if (missing.length > 0) {
-            await AppDataSource.manager.save(HandicapType, missing);
-        }
-    }
-
     //#endregion
 
     //#region Race

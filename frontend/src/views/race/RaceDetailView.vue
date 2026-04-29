@@ -1,115 +1,115 @@
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { type Boat, boats } from '@/models/boats.ts'
-import { raceEntries } from '@/models/raceEntries.ts'
-import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts'
-import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts'
-import { getSeries, type Series } from '@/models/series.ts'
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { type Boat, boats } from '@/models/boats.ts';
+import { raceEntries } from '@/models/raceEntries.ts';
+import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts';
+import { getSeries, type Series } from '@/models/series.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
 type RaceForm = {
-  name: string
-  date: string
-  startTime: string
-  course: string
-  raceClassId: number
-  seriesId: number
-  isCompleted: boolean
-}
+  name: string;
+  date: string;
+  startTime: string;
+  track: string;
+  raceClassId: number;
+  seriesId: number;
+  isCompleted: boolean;
+};
 
-const route = useRoute()
-const raceId = computed(() => Number.parseInt(String(route.params.id), 10))
-const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)))
+const route = useRoute();
+const raceId = computed(() => Number.parseInt(String(route.params.id), 10));
+const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)));
 
-const raceClasses = ref<RaceClass[]>([])
-const seriesRows = ref<Series[]>([])
+const raceClasses = ref<RaceClass[]>([]);
+const seriesRows = ref<Series[]>([]);
 
 onMounted(async () => {
-  raceClasses.value = await getRaceClasses()
-  seriesRows.value = await getSeries()
-})
+  raceClasses.value = await getRaceClasses();
+  seriesRows.value = await getSeries();
+});
 
-const isEditing = ref(false)
-const addedBoatIds = ref<number[]>([])
-const selectedBoatId = ref<number | null>(null)
+const isEditing = ref(false);
+const addedBoatIds = ref<number[]>([]);
+const selectedBoatId = ref<number | null>(null);
 
 const form = reactive<RaceForm>({
   name: '',
   date: '',
   startTime: '',
-  course: '',
+  track: '',
   raceClassId: 0,
   seriesId: 0,
   isCompleted: false,
-})
+});
 
-const original = ref<RaceForm | null>(null)
+const original = ref<RaceForm | null>(null);
 
 if (race.value) {
   const seed: RaceForm = {
     name: race.value.name,
     date: race.value.date,
     startTime: race.value.startTime,
-    course: race.value.course,
+    track: race.value.track,
     raceClassId: race.value.raceClassId,
     seriesId: race.value.seriesId,
     isCompleted: race.value.isCompleted,
-  }
-  original.value = seed
-  Object.assign(form, seed)
+  };
+  original.value = seed;
+  Object.assign(form, seed);
 }
 
 const hasChanges = computed(() => {
   if (!original.value) {
-    return false
+    return false;
   }
-  return JSON.stringify(form) !== JSON.stringify(original.value)
-})
+  return JSON.stringify(form) !== JSON.stringify(original.value);
+});
 
 const raceClassName = computed(() => {
-  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-'
-})
+  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-';
+});
 
 const seriesName = computed(() => {
-  return seriesRows.value.find((item) => item.id === form.seriesId)?.name ?? '-'
-})
+  return seriesRows.value.find((item) => item.id === form.seriesId)?.name ?? '-';
+});
 
 type EntryDisplayRow = {
-  rowKey: string
-  entryId?: number
-  boatId: number
-  boat: Boat
-  outcome: RaceOutcome | undefined
-  source: 'saved' | 'temp'
-}
+  rowKey: string;
+  entryId?: number;
+  boatId: number;
+  boat: Boat;
+  outcome: RaceOutcome | undefined;
+  source: 'saved' | 'temp';
+};
 
 type LocalOutcomeDraft = {
-  result: RaceOutcomeResult
-  position?: number
-  finishTime?: string
-  elapsedTime?: number
-  correctedTime?: number
-}
+  result: RaceOutcomeResult;
+  position?: number;
+  finishTime?: string;
+  elapsedTime?: number;
+  correctedTime?: number;
+};
 
 type EntryModalDraft = {
-  boatId: number | null
-  result: RaceOutcomeResult
-  position: string
-  finishTime: string
-  elapsedTime: string
-  correctedTime: string
-}
+  boatId: number | null;
+  result: RaceOutcomeResult;
+  position: string;
+  finishTime: string;
+  elapsedTime: string;
+  correctedTime: string;
+};
 
-const removedEntryIds = ref<number[]>([])
-const editedOutcomes = ref<Record<string, LocalOutcomeDraft>>({})
-const isEntryModalOpen = ref(false)
-const editingRowKey = ref<string | null>(null)
-const modalError = ref('')
-const resultOptions: RaceOutcomeResult[] = ['', 'DNS', 'OCS', 'DNF', 'RTD', 'DSQ']
+const removedEntryIds = ref<number[]>([]);
+const editedOutcomes = ref<Record<string, LocalOutcomeDraft>>({});
+const isEntryModalOpen = ref(false);
+const editingRowKey = ref<string | null>(null);
+const modalError = ref('');
+const resultOptions: RaceOutcomeResult[] = ['', 'DNS', 'OCS', 'DNF', 'RTD', 'DSQ'];
 
 const entryModalDraft = reactive<EntryModalDraft>({
   boatId: null,
@@ -118,16 +118,16 @@ const entryModalDraft = reactive<EntryModalDraft>({
   finishTime: '',
   elapsedTime: '',
   correctedTime: '',
-})
+});
 
 function mergeOutcome(
   base: RaceOutcome | undefined,
   rowKey: string,
   entryId?: number,
 ): RaceOutcome | undefined {
-  const edited = editedOutcomes.value[rowKey]
+  const edited = editedOutcomes.value[rowKey];
   if (!edited) {
-    return base
+    return base;
   }
 
   return {
@@ -138,12 +138,12 @@ function mergeOutcome(
     finishTime: edited.finishTime,
     elapsedTime: edited.elapsedTime,
     correctedTime: edited.correctedTime,
-  }
+  };
 }
 
 const allBoatRows = computed<EntryDisplayRow[]>(() => {
   if (!race.value) {
-    return []
+    return [];
   }
 
   const base = raceEntries
@@ -160,18 +160,18 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
       (
         row,
       ): row is {
-        rowKey: string
-        entryId: number
-        boatId: number
-        boat: Boat
-        outcome: RaceOutcome | undefined
-        source: 'saved'
+        rowKey: string;
+        entryId: number;
+        boatId: number;
+        boat: Boat;
+        outcome: RaceOutcome | undefined;
+        source: 'saved';
       } => Boolean(row.boat),
     )
     .map((row) => ({
       ...row,
       outcome: mergeOutcome(row.outcome, row.rowKey, row.entryId),
-    }))
+    }));
 
   const added = addedBoatIds.value
     .map((boatId) => boats.find((row) => row.id === boatId))
@@ -182,77 +182,77 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
       boat,
       outcome: mergeOutcome(undefined, `temp-${boat.id}`),
       source: 'temp' as const,
-    }))
+    }));
 
-  return [...base, ...added]
-})
+  return [...base, ...added];
+});
 
 const selectableBoats = computed(() => {
-  const selected = new Set(allBoatRows.value.map((row) => row.boat.id))
-  return boats.filter((boat) => !selected.has(boat.id))
-})
+  const selected = new Set(allBoatRows.value.map((row) => row.boat.id));
+  return boats.filter((boat) => !selected.has(boat.id));
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (original.value) {
-    Object.assign(form, original.value)
+    Object.assign(form, original.value);
   }
-  isEditing.value = false
+  isEditing.value = false;
 }
 
 function saveChanges() {
   if (!hasChanges.value) {
-    return
+    return;
   }
-  original.value = { ...form }
-  isEditing.value = false
+  original.value = { ...form };
+  isEditing.value = false;
 }
 
 function addEntry() {
   if (!selectedBoatId.value) {
-    return
+    return;
   }
   if (!addedBoatIds.value.includes(selectedBoatId.value)) {
-    addedBoatIds.value.push(selectedBoatId.value)
+    addedBoatIds.value.push(selectedBoatId.value);
   }
-  selectedBoatId.value = null
+  selectedBoatId.value = null;
 }
 
 function toNumberOrUndefined(value: string): number | undefined {
-  const normalized = value.trim()
+  const normalized = value.trim();
   if (!normalized) {
-    return undefined
+    return undefined;
   }
-  const parsed = Number(normalized)
-  return Number.isNaN(parsed) ? undefined : parsed
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? undefined : parsed;
 }
 
 function openEntryModal(row: EntryDisplayRow) {
-  editingRowKey.value = row.rowKey
-  entryModalDraft.boatId = row.boatId
-  entryModalDraft.result = row.outcome?.result ?? ''
-  entryModalDraft.position = row.outcome?.position != null ? String(row.outcome.position) : ''
-  entryModalDraft.finishTime = row.outcome?.finishTime ?? ''
+  editingRowKey.value = row.rowKey;
+  entryModalDraft.boatId = row.boatId;
+  entryModalDraft.result = row.outcome?.result ?? '';
+  entryModalDraft.position = row.outcome?.position != null ? String(row.outcome.position) : '';
+  entryModalDraft.finishTime = row.outcome?.finishTime ?? '';
   entryModalDraft.elapsedTime =
-    row.outcome?.elapsedTime != null ? String(row.outcome.elapsedTime) : ''
+    row.outcome?.elapsedTime != null ? String(row.outcome.elapsedTime) : '';
   entryModalDraft.correctedTime =
-    row.outcome?.correctedTime != null ? String(row.outcome.correctedTime) : ''
-  modalError.value = ''
-  isEntryModalOpen.value = true
+    row.outcome?.correctedTime != null ? String(row.outcome.correctedTime) : '';
+  modalError.value = '';
+  isEntryModalOpen.value = true;
 }
 
 function closeEntryModal() {
-  isEntryModalOpen.value = false
-  editingRowKey.value = null
-  modalError.value = ''
+  isEntryModalOpen.value = false;
+  editingRowKey.value = null;
+  modalError.value = '';
 }
 
 function saveEntryModal() {
   if (!editingRowKey.value) {
-    return
+    return;
   }
 
   editedOutcomes.value[editingRowKey.value] = {
@@ -261,9 +261,9 @@ function saveEntryModal() {
     finishTime: entryModalDraft.finishTime.trim() || undefined,
     elapsedTime: toNumberOrUndefined(entryModalDraft.elapsedTime),
     correctedTime: toNumberOrUndefined(entryModalDraft.correctedTime),
-  }
+  };
 
-  closeEntryModal()
+  closeEntryModal();
 }
 
 function removeEntry(row: EntryDisplayRow) {
@@ -272,17 +272,17 @@ function removeEntry(row: EntryDisplayRow) {
     row.entryId != null &&
     !removedEntryIds.value.includes(row.entryId)
   ) {
-    removedEntryIds.value.push(row.entryId)
+    removedEntryIds.value.push(row.entryId);
   }
 
   if (row.source === 'temp') {
-    addedBoatIds.value = addedBoatIds.value.filter((boatId) => boatId !== row.boatId)
+    addedBoatIds.value = addedBoatIds.value.filter((boatId) => boatId !== row.boatId);
   }
 
-  delete editedOutcomes.value[row.rowKey]
+  delete editedOutcomes.value[row.rowKey];
 
   if (editingRowKey.value === row.rowKey) {
-    closeEntryModal()
+    closeEntryModal();
   }
 }
 </script>
@@ -324,14 +324,9 @@ function removeEntry(row: EntryDisplayRow) {
             </td>
           </tr>
           <tr>
-            <th>Course</th>
+            <th>Track</th>
             <td>
-              <input
-                v-model="form.course"
-                :readonly="!isEditing"
-                class="form-control"
-                type="text"
-              />
+              <input v-model="form.track" :readonly="!isEditing" class="form-control" type="text" />
             </td>
           </tr>
           <tr>
