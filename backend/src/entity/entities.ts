@@ -64,14 +64,17 @@ export class RaceClass {
     @Column()
     name: string = "";
 
-    @Column()
-    minHandicap: number = 0;
+    @Column({type: "float", nullable: true})
+    minHandicap: number | null = null;
 
-    @Column()
-    maxHandicap: number = 0;
+    @Column({type: "float", nullable: true})
+    maxHandicap: number | null = null;
 
-    @ManyToOne(() => HandicapType)
-    handicapType!: HandicapType;
+    @ManyToOne(() => HandicapType, {nullable: true})
+    handicapType: HandicapType | null = null;
+
+    @ManyToOne(() => BoatClass, {nullable: true})
+    boatClass: BoatClass | null = null;
 
     @ManyToOne(() => RaceClassType)
     raceClassType!: RaceClassType;
