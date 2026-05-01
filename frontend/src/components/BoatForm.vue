@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { reactive } from 'vue';
 
 type BoatFormPayload = {
-  name: string
-  boatClassId: number
-  sailNumber: number
-  helmName: string
-}
+  name: string;
+  boatClassId: number;
+  sailNumber: number;
+  helmName: string;
+};
 
 type BoatClassOption = {
-  id: number
-  name: string
-}
+  id: number;
+  name: string;
+};
 
 const props = withDefaults(
   defineProps<{
-    title: string
-    submitLabel: string
-    initialValue?: BoatFormPayload
-    boatClasses: BoatClassOption[]
-    isSubmitting?: boolean
+    title: string;
+    submitLabel: string;
+    initialValue?: BoatFormPayload;
+    boatClasses: BoatClassOption[];
+    isSubmitting?: boolean;
   }>(),
   {
     initialValue: () => ({
@@ -30,22 +30,22 @@ const props = withDefaults(
     }),
     isSubmitting: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  submit: [value: BoatFormPayload]
-  cancel: []
-}>()
+  submit: [value: BoatFormPayload];
+  cancel: [];
+}>();
 
 const form = reactive<BoatFormPayload>({
   name: props.initialValue.name,
   boatClassId: props.initialValue.boatClassId,
   sailNumber: props.initialValue.sailNumber,
   helmName: props.initialValue.helmName,
-})
+});
 
 function onSubmit() {
-  emit('submit', { ...form })
+  emit('submit', { ...form });
 }
 </script>
 

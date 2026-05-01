@@ -1,34 +1,34 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { boats } from '@/models/boats.ts'
-import { raceClasses } from '@/models/raceClasses.ts'
-import { races } from '@/models/races.ts'
-import { seriesEntries } from '@/models/seriesEntries.ts'
-import { seriesOutcomes } from '@/models/seriesOutcomes.ts'
-import { findSeriesById } from '@/models/series.ts'
+import { computed, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { boats } from '@/models/boats.ts';
+import { raceClasses } from '@/models/raceClass.ts';
+import { races } from '@/models/races.ts';
+import { seriesEntries } from '@/models/seriesEntries.ts';
+import { seriesOutcomes } from '@/models/seriesOutcomes.ts';
+import { findSeriesById } from '@/models/series.ts';
 
-DataTable.use(DataTablesCore)
+DataTable.use(DataTablesCore);
 
 type SeriesForm = {
-  name: string
-  nbRaces: number
-  nbRacesToCount: number
-  raceClassId: number
-  isCompleted: boolean
-}
+  name: string;
+  nbRaces: number;
+  nbRacesToCount: number;
+  raceClassId: number;
+  isCompleted: boolean;
+};
 
-const route = useRoute()
-const seriesId = computed(() => Number.parseInt(String(route.params.id), 10))
+const route = useRoute();
+const seriesId = computed(() => Number.parseInt(String(route.params.id), 10));
 const seriesItem = computed(() =>
   Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
-)
+);
 
-const isEditing = ref(false)
-const selectedBoatId = ref<number | null>(null)
-const addedBoatIds = ref<number[]>([])
+const isEditing = ref(false);
+const selectedBoatId = ref<number | null>(null);
+const addedBoatIds = ref<number[]>([]);
 
 const form = reactive<SeriesForm>({
   name: '',
@@ -36,8 +36,8 @@ const form = reactive<SeriesForm>({
   nbRacesToCount: 0,
   raceClassId: 0,
   isCompleted: false,
-})
-const original = ref<SeriesForm | null>(null)
+});
+const original = ref<SeriesForm | null>(null);
 
 if (seriesItem.value) {
   const seed: SeriesForm = {
@@ -46,38 +46,38 @@ if (seriesItem.value) {
     nbRacesToCount: seriesItem.value.nbRacesToCount,
     raceClassId: seriesItem.value.raceClassId,
     isCompleted: seriesItem.value.isCompleted,
-  }
-  original.value = seed
-  Object.assign(form, seed)
+  };
+  original.value = seed;
+  Object.assign(form, seed);
 }
 
 const hasChanges = computed(() => {
   if (!original.value) {
-    return false
+    return false;
   }
-  return JSON.stringify(form) !== JSON.stringify(original.value)
-})
+  return JSON.stringify(form) !== JSON.stringify(original.value);
+});
 
 const raceClassName = computed(() => {
-  return raceClasses.find((item) => item.id === form.raceClassId)?.name ?? '-'
-})
+  return raceClasses.find((item) => item.id === form.raceClassId)?.name ?? '-';
+});
 
 const racesInSeries = computed(() => {
   if (!seriesItem.value) {
-    return []
+    return [];
   }
-  return races.filter((race) => race.seriesId === seriesItem.value!.id)
-})
+  return races.filter((race) => race.seriesId === seriesItem.value!.id);
+});
 
 type EntryDisplayRow = {
-  boat: (typeof boats)[number]
-  outcome: (typeof seriesOutcomes)[number] | undefined
-  source: 'saved' | 'temp'
-}
+  boat: (typeof boats)[number];
+  outcome: (typeof seriesOutcomes)[number] | undefined;
+  source: 'saved' | 'temp';
+};
 
 const boatRows = computed<EntryDisplayRow[]>(() => {
   if (!seriesItem.value) {
-    return []
+    return [];
   }
 
   const base = seriesEntries
@@ -91,52 +91,52 @@ const boatRows = computed<EntryDisplayRow[]>(() => {
       (
         row,
       ): row is {
-        boat: (typeof boats)[number]
-        outcome: (typeof seriesOutcomes)[number] | undefined
-        source: 'saved'
+        boat: (typeof boats)[number];
+        outcome: (typeof seriesOutcomes)[number] | undefined;
+        source: 'saved';
       } => Boolean(row.boat),
-    )
+    );
 
   const temp = addedBoatIds.value
     .map((boatId) => boats.find((boat) => boat.id === boatId))
     .filter((boat): boat is (typeof boats)[number] => Boolean(boat))
-    .map((boat) => ({ boat, outcome: undefined, source: 'temp' as const }))
+    .map((boat) => ({ boat, outcome: undefined, source: 'temp' as const }));
 
-  return [...base, ...temp]
-})
+  return [...base, ...temp];
+});
 
 const selectableBoats = computed(() => {
-  const already = new Set(boatRows.value.map((row) => row.boat.id))
-  return boats.filter((boat) => !already.has(boat.id))
-})
+  const already = new Set(boatRows.value.map((row) => row.boat.id));
+  return boats.filter((boat) => !already.has(boat.id));
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (original.value) {
-    Object.assign(form, original.value)
+    Object.assign(form, original.value);
   }
-  isEditing.value = false
+  isEditing.value = false;
 }
 
 function saveChanges() {
   if (!hasChanges.value) {
-    return
+    return;
   }
-  original.value = { ...form }
-  isEditing.value = false
+  original.value = { ...form };
+  isEditing.value = false;
 }
 
 function addEntry() {
   if (!selectedBoatId.value) {
-    return
+    return;
   }
   if (!addedBoatIds.value.includes(selectedBoatId.value)) {
-    addedBoatIds.value.push(selectedBoatId.value)
+    addedBoatIds.value.push(selectedBoatId.value);
   }
-  selectedBoatId.value = null
+  selectedBoatId.value = null;
 }
 </script>
 

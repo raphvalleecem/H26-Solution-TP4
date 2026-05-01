@@ -1,73 +1,74 @@
 <script lang="ts" setup>
-import axios from 'axios'
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import axios from 'axios';
+import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
+const router = useRouter();
 
 const form = reactive({
   name: '',
   handicapValue: '',
   handicapTypeId: '1',
-})
+});
 
-const isSubmitting = ref(false)
-const errorMessage = ref('')
+const isSubmitting = ref(false);
+const errorMessage = ref('');
 
 function getApiErrorMessage(payload: unknown): string | null {
   if (typeof payload === 'string') {
-    return payload
+    return payload;
   }
 
   if (payload && typeof payload === 'object' && 'message' in payload) {
-    const message = (payload as { message?: unknown }).message
+    const message = (payload as { message?: unknown }).message;
 
     if (typeof message === 'string') {
-      return message
+      return message;
     }
   }
 
-  return null
+  return null;
 }
 
 async function onCreate() {
   if (isSubmitting.value) {
-    return
+    return;
   }
 
-  errorMessage.value = ''
+  errorMessage.value = '';
 
-  const handicapValue = Number(form.handicapValue)
+  const handicapValue = Number(form.handicapValue);
   if (Number.isNaN(handicapValue)) {
-    errorMessage.value = 'Please enter a valid handicap value.'
-    return
+    errorMessage.value = 'Please enter a valid handicap value.';
+    return;
   }
 
-  const payload = new FormData()
-  payload.append('name', form.name)
-  payload.append('handicapValue', handicapValue.toString())
-  payload.append('handicapTypeId', form.handicapTypeId)
+  const payload = new FormData();
+  payload.append('name', form.name);
+  payload.append('handicapValue', handicapValue.toString());
+  payload.append('handicapTypeId', form.handicapTypeId);
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
   try {
-    await axios.post('/boat-class/create', payload)
-    await router.push({ name: 'boat-class' })
+    await axios.post('/boat-class/create', payload);
+    await router.push({ name: 'boat-class' });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       errorMessage.value =
-        getApiErrorMessage(error.response?.data) ?? 'Unable to create boat class. Please try again.'
-      return
+        getApiErrorMessage(error.response?.data) ??
+        'Unable to create boat class. Please try again.';
+      return;
     }
 
-    errorMessage.value = 'An unexpected error occurred. Please try again.'
+    errorMessage.value = 'An unexpected error occurred. Please try again.';
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
 }
 
 function onCancel() {
-  router.push({ name: 'boat-class' })
+  router.push({ name: 'boat-class' });
 }
 </script>
 

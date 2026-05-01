@@ -1,13 +1,13 @@
 import axios from 'axios'
 
 export type Series = {
-  id: number
-  name: string
-  nbRaces: number
-  nbRacesToCount: number
-  raceClassId: number
-  isCompleted: boolean
-}
+  id: number;
+  name: string;
+  nbRaces: number;
+  nbRacesToCount: number;
+  raceClassId: number;
+  isCompleted: boolean;
+};
 
 export const seriesRows: Series[] = [
   { id: 1, name: 'Serie 1', nbRaces: 2, nbRacesToCount: 2, raceClassId: 1, isCompleted: true },
@@ -22,7 +22,7 @@ export const seriesRows: Series[] = [
   { id: 10, name: 'Serie 10', nbRaces: 2, nbRacesToCount: 2, raceClassId: 10, isCompleted: true },
   { id: 11, name: 'Serie 11', nbRaces: 2, nbRacesToCount: 1, raceClassId: 11, isCompleted: false },
   { id: 12, name: 'Serie 12', nbRaces: 2, nbRacesToCount: 1, raceClassId: 12, isCompleted: false },
-]
+];
 
 export async function getSeries(): Promise<Series[]> {
   try {
@@ -35,19 +35,19 @@ export async function getSeries(): Promise<Series[]> {
 }
 
 export function findSeriesById(id: number): Series | undefined {
-  return seriesRows.find((row) => row.id === id)
+  return seriesRows.find((row) => row.id === id);
 }
 
 type SeriesPayload = {
-  name: string
-  nbRaces: number
-  nbRacesToCount: number
-  raceClassId: number
-  isCompleted?: boolean
-}
+  name: string;
+  nbRaces: number;
+  nbRacesToCount: number;
+  raceClassId: number;
+  isCompleted?: boolean;
+};
 
 export function addSeries(payload: SeriesPayload): Series {
-  const nextId = Math.max(0, ...seriesRows.map((row) => row.id)) + 1
+  const nextId = Math.max(0, ...seriesRows.map((row) => row.id)) + 1;
   const row: Series = {
     id: nextId,
     name: payload.name,
@@ -55,20 +55,20 @@ export function addSeries(payload: SeriesPayload): Series {
     nbRacesToCount: payload.nbRacesToCount,
     raceClassId: payload.raceClassId,
     isCompleted: payload.isCompleted ?? false,
-  }
-  seriesRows.push(row)
-  return row
+  };
+  seriesRows.push(row);
+  return row;
 }
 
 export function updateSeries(id: number, payload: SeriesPayload): boolean {
-  const index = seriesRows.findIndex((row) => row.id === id)
+  const index = seriesRows.findIndex((row) => row.id === id);
   if (index < 0) {
-    return false
+    return false;
   }
 
-  const current = seriesRows[index]
+  const current = seriesRows[index];
   if (!current) {
-    return false
+    return false;
   }
 
   seriesRows[index] = {
@@ -78,16 +78,16 @@ export function updateSeries(id: number, payload: SeriesPayload): boolean {
     nbRacesToCount: payload.nbRacesToCount,
     raceClassId: payload.raceClassId,
     isCompleted: payload.isCompleted ?? current.isCompleted,
-  }
-  return true
+  };
+  return true;
 }
 
 export function deleteSeries(id: number): boolean {
-  const index = seriesRows.findIndex((row) => row.id === id)
+  const index = seriesRows.findIndex((row) => row.id === id);
   if (index < 0) {
-    return false
+    return false;
   }
 
-  seriesRows.splice(index, 1)
-  return true
+  seriesRows.splice(index, 1);
+  return true;
 }

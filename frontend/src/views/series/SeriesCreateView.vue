@@ -1,22 +1,22 @@
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
-import SeriesForm from '../../components/SeriesForm.vue'
-import { addSeries } from '@/models/series.ts'
+import { useRouter } from 'vue-router';
+import SeriesForm from '../../components/SeriesForm.vue';
+import { addSeries } from '@/models/series.ts';
 
-const router = useRouter()
+const router = useRouter();
 
 function createSeries(payload: {
-  name: string
-  nbRaces: number
-  nbRacesToCount: number
-  raceClassId: number
+  name: string;
+  nbRaces: number;
+  nbRacesToCount: number;
+  raceClassId: number;
 }) {
-  addSeries(payload)
-  router.push({ name: 'series' })
+  addSeries(payload);
+  router.push({ name: 'series' });
 }
 
 function cancel() {
-  router.push({ name: 'series' })
+  router.push({ name: 'series' });
 }
 </script>
 

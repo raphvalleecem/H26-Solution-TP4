@@ -1,13 +1,16 @@
+import axios from 'axios';
+
 export type RaceClassType = {
-  id: number
-  name: 'monotype' | 'handicap'
-}
+  id: number;
+  name: string;
+};
 
-export const raceClassTypes: RaceClassType[] = [
-  { id: 1, name: 'monotype' },
-  { id: 2, name: 'handicap' },
-]
-
-export function findRaceClassTypeById(id: number): RaceClassType | undefined {
-  return raceClassTypes.find((row) => row.id === id)
+export async function getRaceClassTypes(): Promise<RaceClassType[]> {
+  try {
+    const response = await axios.get<RaceClassType[]>('http://localhost:3000/race-class-type');
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
 }

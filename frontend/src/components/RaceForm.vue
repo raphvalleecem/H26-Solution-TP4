@@ -1,48 +1,48 @@
 <script lang="ts" setup>
-import { reactive } from 'vue'
-import type { RaceClass } from '../models/raceClasses'
-import type { Series } from '../models/series'
+import { reactive } from 'vue';
+import type { RaceClass } from '../models/raceClass.ts';
+import type { Series } from '../models/series';
 
 type RaceFormPayload = {
-  name: string
-  date: string
-  startTime: string
-  course: string
-  raceClassId: number
-  seriesId?: number | null
-  isCompleted?: boolean
-}
+  name: string;
+  date: string;
+  startTime: string;
+  track: string;
+  raceClassId: number;
+  seriesId: number;
+  isCompleted?: boolean;
+};
 
 const props = withDefaults(
   defineProps<{
-    title: string
-    submitLabel: string
-    initialValue?: RaceFormPayload
-    raceClasses: RaceClass[]
-    seriesRows: Series[]
+    title: string;
+    submitLabel: string;
+    initialValue?: RaceFormPayload;
+    raceClasses: RaceClass[];
+    seriesRows: Series[];
   }>(),
   {
     initialValue: () => ({
       name: '',
       date: '',
       startTime: '',
-      course: '',
+      track: '',
       raceClassId: 1,
       seriesId: null,
       isCompleted: false,
     }),
   },
-)
+);
 
 const emit = defineEmits<{
-  submit: [value: RaceFormPayload]
-  cancel: []
-}>()
+  submit: [value: RaceFormPayload];
+  cancel: [];
+}>();
 
-const form = reactive<RaceFormPayload>({ ...props.initialValue })
+const form = reactive<RaceFormPayload>({ ...props.initialValue });
 
 function onSubmit() {
-  emit('submit', { ...form })
+  emit('submit', { ...form });
 }
 </script>
 
@@ -73,10 +73,10 @@ function onSubmit() {
       </div>
 
       <div class="form-group">
-        <label for="race-course">Course</label>
+        <label for="race-track">Track</label>
         <input
-          id="race-course"
-          v-model.trim="form.course"
+          id="race-track"
+          v-model.trim="form.track"
           class="form-control"
           required
           type="text"

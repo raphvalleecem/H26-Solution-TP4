@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { findRaceClassById } from '@/models/raceClasses.ts'
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { findRaceClassById } from '@/models/raceClass.ts';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const classId = computed(() => Number.parseInt(String(route.params.id), 10))
+const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 const raceClass = computed(() =>
   Number.isNaN(classId.value) ? undefined : findRaceClassById(classId.value),
-)
+);
 
 function confirmDelete() {
-  router.push({ name: 'race-class' })
+  router.push({ name: 'race-class' });
 }
 </script>
 

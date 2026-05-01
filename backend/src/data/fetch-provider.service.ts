@@ -45,7 +45,7 @@ export class FetchProvider {
 
     //#region RaceClass
 
-    public async getRaceClass(): Promise<RaceClass[]> {
+    public async getRaceClasses(): Promise<RaceClass[]> {
         const raceClass = await AppDataSource.manager.find(RaceClass, {
             relations: {
                 raceClassType: true,
@@ -68,7 +68,10 @@ export class FetchProvider {
     }
 
     public async getRaceClassById(id: number): Promise<RaceClass | null> {
-        return await AppDataSource.manager.findOneBy(RaceClass, {id});
+        return await AppDataSource.manager.findOne(RaceClass, {
+            where: {id},
+            relations: ["raceClassType", "handicapType"],
+        });
     }
 
     //#endregion
@@ -124,24 +127,6 @@ export class FetchProvider {
 
     public async getHandicapTypeById(id: number): Promise<HandicapType | null> {
         return await AppDataSource.manager.findOneBy(HandicapType, {id});
-    }
-
-    public async ensureDefaultHandicapTypes(): Promise<void> {
-        const requiredNames = ["PY", "TMF"];
-        const handicapTypes = await AppDataSource.manager.find(HandicapType);
-        const existingNames = new Set(handicapTypes.map((ht: HandicapType) => ht.name));
-
-        const missing = requiredNames
-            .filter((name) => !existingNames.has(name))
-            .map((name) => {
-                const handicapType = new HandicapType();
-                handicapType.name = name;
-                return handicapType;
-            });
-
-        if (missing.length > 0) {
-            await AppDataSource.manager.save(HandicapType, missing);
-        }
     }
 
     //#endregion
