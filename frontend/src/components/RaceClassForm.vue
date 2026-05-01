@@ -56,7 +56,7 @@ async function loadHandicapTypes() {
 }
 
 const emit = defineEmits<{
-  'submit-class': [value: RaceClassFormSubmitModel];
+  submit: [value: RaceClassFormSubmitModel];
   cancel: [];
 }>();
 
@@ -72,7 +72,7 @@ function onSubmit() {
     return;
   }
 
-  emit('submit-class', {
+  emit('submit', {
     name: form.name,
     minHandicap: form.minHandicap,
     maxHandicap: form.maxHandicap,

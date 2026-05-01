@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import { getRaces, type Race } from '@/models/races.ts';
-import { getSeries, seriesRows } from '@/models/series.ts';
+import { getSeries, type Series } from '@/models/series.ts';
 import { getRaceClassTypes, type RaceClassType } from '@/models/raceClassTypes.ts';
 import { getHandicapTypes, type HandicapType } from '@/models/handicapTypes.ts';
 import type { RaceClass } from '@/models/raceClass.ts';
@@ -18,6 +18,7 @@ const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 const races = ref<Race[]>([]);
 const raceClassTypes = ref<RaceClassType[]>([]);
 const handicapTypes = ref<HandicapType[]>([]);
+const series = ref<Series[]>([]);
 const raceClass = ref<RaceClass | null>(null);
 
 const isLoading = ref(true);
@@ -35,6 +36,7 @@ const original = ref('');
 onMounted(async () => {
   await loadRaceClassTypes();
   await loadHandicapTypes();
+  await loadSeries();
   void fetchRaceClass();
 });
 
@@ -62,7 +64,7 @@ const relatedSeries = computed(() => {
   if (!raceClass.value) {
     return [];
   }
-  return seriesRows.filter((seriesItem) => seriesItem.raceClassId === raceClass.value!.id);
+  return series.value.filter((seriesItem) => seriesItem.raceClass.id === raceClass.value!.id);
 });
 
 function startEdit() {
@@ -166,6 +168,10 @@ async function loadRaceClassTypes() {
 
 async function loadHandicapTypes() {
   handicapTypes.value = await getHandicapTypes();
+}
+
+async function loadSeries() {
+  series.value = await getSeries();
 }
 </script>
 
