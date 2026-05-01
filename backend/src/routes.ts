@@ -18,25 +18,29 @@ router.get('/race', async (req: Request, res: Response) => {
 });
 router.post('/race/create', upload.none(), async (req: Request, res: Response) => {
     try {
-        const {name, startTime, course, raceClassId, seriesId} = req.body;
+        const {name, startDate, startTime, track, raceClassId, seriesId} = req.body;
 
         if (!name || !String(name).trim()) {
             return res.status(400).json({error: "Name is required"});
+        }
+
+        if (!startDate) {
+            return res.status(400).json({error: "startDate is required"});
         }
 
         if (!startTime) {
             return res.status(400).json({error: "startTime is required"});
         }
 
-        if (!course || !String(course).trim()) {
-            return res.status(400).json({error: "course is required"});
+        if (!track || !String(track).trim()) {
+            return res.status(400).json({error: "track is required"});
         }
 
         if (raceClassId === undefined || raceClassId === null) {
             return res.status(400).json({error: "raceClassId is required"});
         }
 
-        let parsedStartTime = new Date(startTime);
+        // Now store startDate and startTime as strings (no Date parsing)
         const parsedRaceClassId = Number(raceClassId);
         let parsedSeriesId: number | null = null;
         if (seriesId !== undefined && seriesId !== null && String(seriesId).trim() !== "") {
@@ -46,14 +50,6 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             }
         }
 
-        if (Number.isNaN(parsedStartTime.getTime()) && typeof startTime === "string") {
-            const normalizedStartTime = startTime.replace(" ", "T");
-            parsedStartTime = new Date(normalizedStartTime);
-        }
-
-        if (Number.isNaN(parsedStartTime.getTime())) {
-            return res.status(400).json({error: "startTime must be a valid date"});
-        }
 
         if (Number.isNaN(parsedRaceClassId)) {
             return res.status(400).json({error: "raceClassId must be a number"});
@@ -80,8 +76,9 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
 
         const race = new Race();
         race.name = String(name).trim();
-        race.startTime = parsedStartTime;
-        race.course = String(course).trim();
+        race.startDate = String(startDate).trim();
+        race.startTime = String(startTime).trim();
+        race.track = String(track).trim();
         race.raceClass = raceClass;
         race.series = series ?? null;
 

@@ -106,10 +106,13 @@ export class Race {
     name: string = "";
 
     @Column()
-    startTime: Date = new Date();
+    startDate: string = "";
 
     @Column()
-    course: string = "";
+    startTime: string = "";
+
+    @Column()
+    track: string = "";
 
     @ManyToOne(() => RaceClass)
     raceClass!: RaceClass;

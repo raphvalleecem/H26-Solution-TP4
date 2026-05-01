@@ -2,44 +2,45 @@
 import { reactive } from 'vue';
 import type { RaceClass } from '../models/raceClass.ts';
 import type { Series } from '../models/series';
+import type { RaceCreatePayload } from '../models/races.ts';
 
-type RaceFormPayload = {
-  name: string;
-  date: string;
-  startTime: string;
-  track: string;
-  raceClassId: number;
-  seriesId: number;
-  isCompleted?: boolean;
+type RaceFormPayload = RaceCreatePayload;
+
+const defaultInitialValue: RaceFormPayload = {
+  name: '',
+  startDate: '',
+  startTime: '',
+  track: '',
+  raceClassId: 1,
+  seriesId: null,
 };
 
-const props = withDefaults(
-  defineProps<{
-    title: string;
-    submitLabel: string;
-    initialValue?: RaceFormPayload;
-    raceClasses: RaceClass[];
-    seriesRows: Series[];
-  }>(),
-  {
-    initialValue: () => ({
-      name: '',
-      date: '',
-      startTime: '',
-      track: '',
-      raceClassId: 1,
-      seriesId: null,
-      isCompleted: false,
-    }),
-  },
-);
+const props = defineProps<{
+  title: string;
+  submitLabel: string;
+  initialValue?: RaceFormPayload;
+  raceClasses: RaceClass[];
+  seriesRows: Series[];
+}>();
 
 const emit = defineEmits<{
   submit: [value: RaceFormPayload];
   cancel: [];
 }>();
 
-const form = reactive<RaceFormPayload>({ ...props.initialValue });
+const form = reactive<RaceFormPayload>({ ...defaultInitialValue, ...props.initialValue });
+
+function onDateInput(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const year = input.value.split('-')[0] ?? '';
+
+  if (year.length > 4) {
+    input.value = form.startDate;
+    return;
+  }
+
+  form.startDate = input.value;
+}
 
 function onSubmit() {
   emit('submit', { ...form });
@@ -58,7 +59,15 @@ function onSubmit() {
 
       <div class="form-group">
         <label for="race-date">Date</label>
-        <input id="race-date" v-model="form.date" class="form-control" required type="date" />
+        <input
+          id="race-date"
+          :value="form.startDate"
+          class="form-control"
+          max="9999-12-31"
+          required
+          type="date"
+          @input="onDateInput"
+        />
       </div>
 
       <div class="form-group">

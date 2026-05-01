@@ -55,14 +55,14 @@ const relatedRaces = computed(() => {
   if (!raceClass.value) {
     return [];
   }
-  return races.value.filter((race) => race.raceClassId === raceClass.value!.id);
+  return races.value.filter((race) => race.raceClass === raceClass.value!.id);
 });
 
 const relatedSeries = computed(() => {
   if (!raceClass.value) {
     return [];
   }
-  return seriesRows.filter((seriesItem) => seriesItem.raceClassId === raceClass.value!.id);
+  return seriesRows.filter((seriesItem) => seriesItem.raceClass === raceClass.value!.id);
 });
 
 function startEdit() {
@@ -286,7 +286,7 @@ async function loadHandicapTypes() {
             <td>
               <RouterLink :to="`/race/${row.id}`">{{ row.name }}</RouterLink>
             </td>
-            <td>{{ row.date }}</td>
+            <td>{{ row.startDate }}</td>
           </tr>
         </tbody>
       </DataTable>

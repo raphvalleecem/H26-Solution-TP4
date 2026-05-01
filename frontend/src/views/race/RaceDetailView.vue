@@ -13,7 +13,7 @@ DataTable.use(DataTablesCore);
 
 type RaceForm = {
   name: string;
-  date: string;
+  startDate: string;
   startTime: string;
   track: string;
   raceClassId: number;

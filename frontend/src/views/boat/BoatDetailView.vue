@@ -273,7 +273,7 @@ function saveChanges() {
             <td>
               <RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink>
             </td>
-            <td>{{ race.date }}</td>
+            <td>{{ race.startDate }}</td>
           </tr>
         </tbody>
       </DataTable>

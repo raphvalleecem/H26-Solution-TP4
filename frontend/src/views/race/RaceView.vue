@@ -23,21 +23,27 @@ onMounted(async () => {
 const columns = [
   { data: 'id', title: '#' },
   { data: 'name', title: 'Name' },
-  { data: 'date', title: 'Date', defaultContent: '-' },
+  { data: 'startDate', title: 'Date', defaultContent: '-' },
   { data: 'startTime', title: 'Start time', defaultContent: '-' },
   { data: 'track', title: 'Track' },
   {
-    data: 'raceClassId',
+    data: null,
     title: 'Race class',
-    render: (id: number) => {
-      const name = raceClasses.value.find((item) => item.id === id)?.name ?? `#${id}`;
-      return `<a href="/race-class/${id}" class="race-class-link" data-id="${id}">${name}</a>`;
+    render: (data: Race) => {
+      const name = data.raceClass.name;
+      if (name) {
+        return `<a href="/race-class/${data.raceClass.id}" class="race-class-link" data-id="${data.raceClass.id}">${name}</a>`;
+      }
+      return `?`;
     },
   },
   {
-    data: 'seriesId',
+    data: 'series',
     title: 'Series',
     render: (id: number) => {
+      if (id === 0 || id === null) {
+        return 'Hors-série';
+      }
       const name = seriesRows.value.find((item) => item.id === id)?.name ?? `#${id}`;
       return `<a href="/series/${id}" class="series-link" data-id="${id}">${name}</a>`;
     },
