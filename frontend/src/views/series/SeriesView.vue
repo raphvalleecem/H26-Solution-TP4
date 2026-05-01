@@ -17,6 +17,43 @@ onMounted(async () => {
 async function loadSeries() {
   series.value = await getSeries();
 }
+
+function handleTableClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+
+  if (target.classList.contains('race-class-link')) {
+    event.preventDefault();
+    const id = target.getAttribute('data-id');
+    if (id) router.push(`/race-class/${id}`);
+  } else if (target.classList.contains('series-details')) {
+    event.preventDefault();
+    const id = target.getAttribute('data-id');
+    if (id) router.push(`/series/${id}`);
+  }
+}
+
+const columns = [
+  { data: 'id', title: '#' },
+  { data: 'name', title: 'Name' },
+  { data: 'nbRaces', title: 'Nb Races' },
+  { data: 'nbRacesToCount', title: 'Nb Races To Count' },
+  {
+    data: null,
+    title: 'Race class',
+    render: (data: Series) => {
+      return `<a href="/race-class/${data.raceClass.id}" class="race-class-link" data-id="${data.raceClass.id}">${data.raceClass.name}</a>`;
+    },
+  },
+  {
+    data: null,
+    title: 'Actions',
+    render: (data: Series) => {
+      return `<a href="/series/${data.id}" class="btn btn-sm btn-secondary series-details" data-id="${data.id}">Details</a>`;
+    },
+    orderable: false,
+    searchable: false,
+  },
+];
 </script>
 
 <template>
@@ -26,35 +63,11 @@ async function loadSeries() {
       >Create</RouterLink
     >
 
-    <DataTable class="table table-striped table-bordered mt-3">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Nb Races</th>
-          <th>Nb Races To Count</th>
-          <th>Race class</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in series" :key="item.id">
-          <td>{{ item.id }}</td>
-          <td>{{ item.name }}</td>
-          <td>{{ item.nbRaces }}</td>
-          <td>{{ item.nbRacesToCount }}</td>
-          <td>
-            <RouterLink :to="`/race-class/${item.raceClass.id}`">
-              {{ item.raceClass.name }}
-            </RouterLink>
-          </td>
-          <td>
-            <RouterLink :to="`/series/${item.id}`" class="btn btn-sm btn-secondary"
-              >Details</RouterLink
-            >
-          </td>
-        </tr>
-      </tbody>
-    </DataTable>
+    <DataTable
+      :columns="columns"
+      :data="series"
+      class="table table-striped table-bordered mt-3"
+      @click="handleTableClick"
+    />
   </main>
 </template>
