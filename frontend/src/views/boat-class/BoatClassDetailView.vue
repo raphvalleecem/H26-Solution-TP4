@@ -1,79 +1,75 @@
 <script lang="ts" setup>
-import axios from 'axios'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import DataTable from 'datatables.net-vue3'
-import DataTablesCore from 'datatables.net-bs4'
-import { handicapTypes } from '@/models/handicapTypes.ts'
+import axios from 'axios';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import DataTable from 'datatables.net-vue3';
+import DataTablesCore from 'datatables.net-bs4';
+import { getHandicapTypes, type HandicapType } from '@/models/handicapTypes.ts';
+import type { BoatClass } from '@/models/boatClasses.ts';
 
-DataTable.use(DataTablesCore)
-
-type BoatClassDetail = {
-  id: number
-  name: string
-  handicapValue: number
-  handicapTypeId: number
-  handicapTypeName: string | null
-}
-
-type BoatClassApiRow = {
-  id?: unknown
-  name?: unknown
-  handicapValue?: unknown
-  handicap_value?: unknown
-  handicapTypeId?: unknown
-  handicap_type_id?: unknown
-  handicapType?: { id?: unknown; name?: unknown } | string | null
-}
+DataTable.use(DataTablesCore);
 
 type Boat = {
-  id: number
-  name: string
-  helmName: string
-  boatClassId: number
-}
+  id: number;
+  name: string;
+  helmName: string;
+  boatClassId: number;
+};
 
-const route = useRoute()
-const classId = computed(() => Number.parseInt(String(route.params.id), 10))
-const boatClass = ref<BoatClassDetail | null>(null)
-const isLoading = ref(true)
-const errorMessage = ref('')
-const boatsInClass = ref<Boat[]>([])
+const route = useRoute();
+const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 
-const isEditing = ref(false)
+const boats = ref<Boat[]>([]);
+const handicapTypes = ref<HandicapType[]>([]);
+const boatClass = ref<BoatClass | null>(null);
+
+const isLoading = ref(true);
+const isEditing = ref(false);
+const errorMessage = ref('');
 const form = reactive({
   name: '',
-  handicapValue: 0,
-  handicapTypeId: 1,
-})
-const original = ref('')
+  handicapValue: '' as string | number,
+  handicapTypeId: '' as string | number,
+});
+const original = ref('');
 
-const hasChanges = computed(() => JSON.stringify(form) !== original.value)
+const hasChanges = computed(() => JSON.stringify(form) !== original.value);
 
-const handicapTypeName = computed(() => {
-  return handicapTypes.find((item) => item.id === form.handicapTypeId)?.name ?? '-'
-})
+const relatedBoats = computed(() => {
+  if (!boatClass.value) {
+    return [];
+  }
+  return boats.value.filter((boat) => boat.boatClassId === boatClass.value!.id);
+});
+
+onMounted(async () => {
+  await loadHandicapTypes();
+  void fetchBoatClass();
+});
 
 function startEdit() {
-  isEditing.value = true
+  isEditing.value = true;
 }
 
 function cancelEdit() {
   if (!boatClass.value) {
-    return
+    return;
   }
   Object.assign(form, {
     name: boatClass.value.name,
     handicapValue: boatClass.value.handicapValue,
-    handicapTypeId: boatClass.value.handicapTypeId,
-  })
-  isEditing.value = false
+    handicapTypeId: boatClass.value.handicapType.id,
+  });
+  isEditing.value = false;
 }
 
 async function saveChanges() {
   if (!hasChanges.value || !boatClass.value) {
-    return
+    return;
   }
+
+  original.value = JSON.stringify(form);
+  isEditing.value = false;
 
   try {
     await axios.post('/boat-class/update', {
@@ -81,93 +77,66 @@ async function saveChanges() {
       name: form.name,
       handicapValue: form.handicapValue,
       handicapTypeId: form.handicapTypeId,
-    })
-    original.value = JSON.stringify(form)
-    isEditing.value = false
-    errorMessage.value = ''
+    });
+    original.value = JSON.stringify(form);
+    isEditing.value = false;
+    errorMessage.value = '';
   } catch {
-    errorMessage.value = 'Unable to save boat class. Please try again.'
+    errorMessage.value = 'Unable to save boat class. Please try again.';
   }
 }
 
-function toNumberOrNull(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
-}
-
-function normalizeBoatClass(row: BoatClassApiRow): BoatClassDetail {
-  const handicapTypeObj =
-    typeof row.handicapType === 'object' && row.handicapType !== null ? row.handicapType : null
-  const fallbackTypeName = typeof row.handicapType === 'string' ? row.handicapType : null
-
-  return {
-    id: toNumberOrNull(row.id) ?? 0,
-    name: typeof row.name === 'string' ? row.name : '',
-    handicapValue: toNumberOrNull(row.handicapValue ?? row.handicap_value) ?? 0,
-    handicapTypeId:
-      toNumberOrNull(row.handicapTypeId ?? row.handicap_type_id) ??
-      toNumberOrNull(handicapTypeObj?.id) ??
-      1,
-    handicapTypeName:
-      (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
-  }
-}
-
-async function loadBoatClass() {
+async function fetchBoatClass() {
   if (Number.isNaN(classId.value)) {
-    boatClass.value = null
-    errorMessage.value = 'Invalid boat class id.'
-    isLoading.value = false
-    return
+    boatClass.value = null;
+    errorMessage.value = 'Invalid boat class id.';
+    isLoading.value = false;
+    return;
   }
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = '';
 
   try {
-    const response = await axios.get<BoatClassApiRow>(`/boat-class/${classId.value}`)
-    const loadedBoatClass = normalizeBoatClass(response.data)
+    const response = await axios.get<BoatClass>(`/boat-class/${classId.value}`);
+    const data: BoatClass = response.data;
 
-    boatClass.value = loadedBoatClass
+    const loadedBoatClass: BoatClass = {
+      id: data.id,
+      name: data.name,
+      handicapValue: data.handicapValue,
+      handicapType: data.handicapType,
+    };
+
+    boatClass.value = loadedBoatClass;
     Object.assign(form, {
       name: loadedBoatClass.name,
       handicapValue: loadedBoatClass.handicapValue,
-      handicapTypeId: loadedBoatClass.handicapTypeId,
-    })
-    original.value = JSON.stringify(form)
+      handicapTypeId: loadedBoatClass.handicapType.id,
+    });
+    original.value = JSON.stringify(form);
+
+    try {
+      const boatsResponse = await axios.get<Boat[]>('/boat');
+      boats.value = boatsResponse.data;
+    } catch {
+      boats.value = [];
+    }
   } catch {
-    boatClass.value = null
-    errorMessage.value = 'Unable to load boat class details. Please try again.'
+    boatClass.value = null;
+    errorMessage.value = 'Unable to load boat class details. Please try again.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
-
-async function loadBoatsInClass() {
-  if (!boatClass.value) {
-    boatsInClass.value = []
-    return
-  }
-
-  try {
-    const response = await axios.get<Boat[]>(`/boat?classId=${boatClass.value.id}`)
-    boatsInClass.value = response.data
-  } catch {
-    boatsInClass.value = []
-  }
-}
-
-onMounted(() => {
-  void loadBoatClass()
-})
 
 watch(classId, () => {
-  void loadBoatClass()
-})
+  void fetchBoatClass();
+});
 
-watch(boatClass, () => {
-  void loadBoatsInClass()
-})
+async function loadHandicapTypes() {
+  handicapTypes.value = await getHandicapTypes();
+}
 </script>
 
 <template>
@@ -195,17 +164,17 @@ watch(boatClass, () => {
             <th>Handicap value</th>
             <td>
               <input
-                v-model.number="form.handicapValue"
+                v-model="form.handicapValue"
                 :readonly="!isEditing"
                 class="form-control"
-                type="number"
+                type="text"
               />
             </td>
           </tr>
           <tr>
             <th>Handicap type</th>
             <td>
-              <span v-if="!isEditing">{{ handicapTypeName }}</span>
+              <span v-if="!isEditing">{{ boatClass.handicapType.name }}</span>
               <select v-else v-model.number="form.handicapTypeId" class="form-control">
                 <option v-for="item in handicapTypes" :key="item.id" :value="item.id">
                   {{ item.name }}
@@ -252,7 +221,7 @@ watch(boatClass, () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="boat in boatsInClass" :key="boat.id">
+          <tr v-for="boat in relatedBoats" :key="boat.id">
             <td>{{ boat.id }}</td>
             <td>
               <RouterLink :to="`/boat/${boat.id}`">{{ boat.name }}</RouterLink>

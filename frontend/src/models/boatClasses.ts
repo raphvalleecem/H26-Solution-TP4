@@ -1,12 +1,8 @@
+import type { HandicapType } from '@/models/handicapTypes.ts';
+
 export type BoatClass = {
   id: number;
   name: string;
   handicapValue: number;
-  handicapTypeId: number;
+  handicapType: HandicapType;
 };
-
-export const boatClasses: BoatClass[] = []
-
-export function findBoatClassById(id: number): BoatClass | undefined {
-  return boatClasses.find((row) => row.id === id);
-}
