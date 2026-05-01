@@ -1,73 +1,63 @@
 <script lang="ts" setup>
+import axios from 'axios'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { boatClasses } from '@/models/boatClasses.ts'
 import { raceEntries } from '@/models/raceEntries.ts'
 import { getRaces, type Race } from '@/models/races.ts'
 import { seriesEntries } from '@/models/seriesEntries.ts'
-import { seriesRows } from '@/models/series.ts'
-import axios from 'axios'
+import { getSeries, type Series } from '@/models/series.ts'
+import type { Boat } from '@/models/boats.ts';
 
 DataTable.use(DataTablesCore)
 
 type BoatForm = {
+  name: string;
+  sailNumber: string | number
+  helmName: string
+  boatClassId: string | number
+}
+
+type BoatClassOption = {
+  id: number
+  name: string
+}
+
+type BoatDetail = {
+  id: number
   name: string
   sailNumber: number
   helmName: string
   boatClassId: number
-}
-
-type BoatDetail = BoatForm & {
-  id: number
   boatClassName: string | null
-}
-
-type BoatApi = {
-  id?: unknown
-  name?: unknown
-  sailNumber?: unknown
-  sail_number?: unknown
-  helmName?: unknown
-  helm_name?: unknown
-  boatClassId?: unknown
-  boat_class_id?: unknown
-  boatClass?: {
-    id?: unknown
-    name?: unknown
-    handicapValue?: unknown
-    handicap_value?: unknown
-    handicapTypeId?: unknown
-    handicap_type_id?: unknown
-    handicapType?: { id?: unknown; name?: unknown } | string | null
-  } | null
 }
 
 const route = useRoute()
 const boatId = computed(() => Number.parseInt(String(route.params.id), 10))
-const boat = ref<BoatDetail | null>(null)
+
+const boatClasses = ref<BoatClassOption[]>([])
 const races = ref<Race[]>([])
+const seriesRows = ref<Series[]>([])
+const boat = ref<BoatDetail | null>(null)
 
+const isLoading = ref(true)
 const isEditing = ref(false)
-const form = reactive<BoatForm>({ name: '', sailNumber: 0, helmName: '', boatClassId: 0 })
-const original = ref<BoatForm | null>(null)
+const errorMessage = ref('')
+const form = reactive<BoatForm>({ name: '', sailNumber: '', helmName: '', boatClassId: '' })
+const original = ref('')
 
-const hasChanges = computed(() => {
-  if (!original.value) {
-    return false
-  }
-  return JSON.stringify(form) !== JSON.stringify(original.value)
-})
+const hasChanges = computed(() => JSON.stringify(form) !== original.value)
 
 const boatClassName = computed(() => {
-  return boat.value?.boatClassName ?? boatClasses.find((item) => item.id === form.boatClassId)?.name ?? '-'
+  return boat.value?.boatClassName ?? boatClasses.value.find((item) => item.id === Number(form.boatClassId))?.name ?? '-'
 })
 
 const raceList = computed(() => {
   if (!boat.value) {
     return []
   }
+
   const currentBoatId = boat.value.id
   return raceEntries
     .filter((entry) => entry.boatId === currentBoatId)
@@ -79,17 +69,64 @@ const seriesList = computed(() => {
   if (!boat.value) {
     return []
   }
+
   const currentBoatId = boat.value.id
   return seriesEntries
     .filter((entry) => entry.boatId === currentBoatId)
-    .map((entry) => seriesRows.find((series) => series.id === entry.seriesId))
-    .filter((series): series is NonNullable<typeof series> => Boolean(series))
+    .map((entry) => seriesRows.value.find((series) => series.id === entry.seriesId))
+    .filter((series): series is Series => Boolean(series))
 })
 
-const isLoading = ref(true)
-const errorMessage = ref('')
+onMounted(async () => {
+  await loadBoatClasses()
+  await loadRaces()
+  await loadSeries()
+  void fetchBoat()
+})
 
-async function loadBoat() {
+function startEdit() {
+  isEditing.value = true
+}
+
+function cancelEdit() {
+  if (!boat.value) {
+    return
+  }
+
+  Object.assign(form, {
+    name: boat.value.name,
+    sailNumber: boat.value.sailNumber,
+    helmName: boat.value.helmName,
+    boatClassId: boat.value.boatClassId,
+  })
+  isEditing.value = false
+}
+
+async function saveChanges() {
+  if (!hasChanges.value || !boat.value) {
+    return
+  }
+
+  original.value = JSON.stringify(form)
+  isEditing.value = false
+
+  try {
+    await axios.post('/boat/update', {
+      id: boat.value.id,
+      name: form.name,
+      sailNumber: form.sailNumber === '' ? null : Number(form.sailNumber),
+      helmName: form.helmName,
+      boatClassId: form.boatClassId === '' ? null : Number(form.boatClassId),
+    })
+    original.value = JSON.stringify(form)
+    isEditing.value = false
+    errorMessage.value = ''
+  } catch {
+    errorMessage.value = 'Unable to save boat. Please try again.'
+  }
+}
+
+async function fetchBoat() {
   if (Number.isNaN(boatId.value)) {
     boat.value = null
     errorMessage.value = 'Invalid boat id.'
@@ -101,10 +138,17 @@ async function loadBoat() {
   errorMessage.value = ''
 
   try {
-    const response = await axios.get<BoatApi>(`/boat-class/${boatId.value}`)
-    const loadedBoat = normalizeBoat(response.data)
+    const response = await axios.get<Boat[]>('/boat')
+    const data = response.data.find((row) => Number(row.id) === boatId.value)
 
-    boat.value = loadedBoat
+    if (!data) {
+      boat.value = null
+      return
+    }
+
+    const loadedBoat = data
+
+
     const seed: BoatForm = {
       name: loadedBoat.name,
       sailNumber: loadedBoat.sailNumber,
@@ -113,8 +157,7 @@ async function loadBoat() {
     }
 
     Object.assign(form, seed)
-    original.value = { ...seed }
-    races.value = await getRaces()
+    original.value = JSON.stringify(seed)
   } catch {
     boat.value = null
     errorMessage.value = 'Unable to load boat details. Please try again.'
@@ -123,56 +166,30 @@ async function loadBoat() {
   }
 }
 
-function toNumberOrNull(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
-}
-
-function normalizeBoat(row: BoatApi): BoatDetail {
-  const boatClass =
-    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null
-
-  return {
-    id: toNumberOrNull(row.id) ?? 0,
-    name: typeof row.name === 'string' ? row.name : '',
-    sailNumber: toNumberOrNull(row.sailNumber ?? row.sail_number) ?? 0,
-    helmName:
-      typeof row.helmName === 'string'
-        ? row.helmName
-        : typeof row.helm_name === 'string'
-          ? row.helm_name
-          : '',
-    boatClassId: toNumberOrNull(row.boatClassId ?? row.boat_class_id) ?? toNumberOrNull(boatClass?.id) ?? 0,
-    boatClassName: typeof boatClass?.name === 'string' ? boatClass.name : null,
+async function loadBoatClasses() {
+  try {
+    const response = await axios.get<BoatClassOption[]>('/boat-class')
+    boatClasses.value = response.data.map((row) => ({
+      id: Number(row.id),
+      name: typeof row.name === 'string' ? row.name : '',
+    }))
+  } catch {
+    boatClasses.value = []
   }
 }
 
-onMounted(() => {
-  void loadBoat()
-})
+async function loadRaces() {
+  races.value = await getRaces()
+}
+
+async function loadSeries() {
+  seriesRows.value = await getSeries()
+}
+
 
 watch(boatId, () => {
-  void loadBoat()
+  void fetchBoat()
 })
-
-function startEdit() {
-  isEditing.value = true
-}
-
-function cancelEdit() {
-  if (original.value) {
-    Object.assign(form, original.value)
-  }
-  isEditing.value = false
-}
-
-function saveChanges() {
-  if (!hasChanges.value) {
-    return
-  }
-  original.value = { ...form }
-  isEditing.value = false
-}
 </script>
 
 <template>
@@ -221,9 +238,7 @@ function saveChanges() {
           <tr>
             <th>Boat class</th>
             <td>
-              <RouterLink v-if="!isEditing" :to="`/boat-class/${form.boatClassId}`">{{
-                boatClassName
-              }}</RouterLink>
+              <span v-if="!isEditing">{{ boatClassName }}</span>
               <select v-else v-model.number="form.boatClassId" class="form-control">
                 <option v-for="item in boatClasses" :key="item.id" :value="item.id">
                   {{ item.name }}
