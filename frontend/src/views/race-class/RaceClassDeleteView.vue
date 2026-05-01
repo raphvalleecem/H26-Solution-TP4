@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { findRaceClassById } from '@/models/raceClasses.ts';
+import { findRaceClassById } from '@/models/raceClass.ts';
 
 const route = useRoute();
 const router = useRouter();

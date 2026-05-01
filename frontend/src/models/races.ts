@@ -13,7 +13,7 @@ export type Race = {
 
 export async function getRaces(): Promise<Race[]> {
   try {
-    const response = await axios.get<Race[]>('http://localhost:3000/races');
+    const response = await axios.get<Race[]>('http://localhost:3000/race');
     return response.data.map((race) => {
       const startDateTime = race.startTime ? new Date(race.startTime) : null;
       return {

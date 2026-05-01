@@ -2,7 +2,7 @@
 import { RouterLink } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { raceClasses } from '@/models/raceClasses.ts';
+import { raceClasses } from '@/models/raceClass.ts';
 import { seriesRows } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);

@@ -45,7 +45,7 @@ export class FetchProvider {
 
     //#region RaceClass
 
-    public async getRaceClass(): Promise<RaceClass[]> {
+    public async getRaceClasses(): Promise<RaceClass[]> {
         const raceClass = await AppDataSource.manager.find(RaceClass, {
             relations: {
                 raceClassType: true,
@@ -68,7 +68,10 @@ export class FetchProvider {
     }
 
     public async getRaceClassById(id: number): Promise<RaceClass | null> {
-        return await AppDataSource.manager.findOneBy(RaceClass, {id});
+        return await AppDataSource.manager.findOne(RaceClass, {
+            where: {id},
+            relations: ["raceClassType", "handicapType"],
+        });
     }
 
     //#endregion

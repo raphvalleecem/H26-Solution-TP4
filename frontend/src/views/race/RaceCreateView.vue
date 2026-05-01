@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import RaceForm from '../../components/RaceForm.vue';
 import { addRace } from '@/models/races.ts';
-import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
 
 const router = useRouter();
@@ -23,8 +23,8 @@ async function createRace(payload: {
   raceClassId: number;
   seriesId: number;
 }) {
-  await addRace({ ...payload, isCompleted: false })
-  await router.push({ name: 'race' })
+  await addRace({ ...payload, isCompleted: false });
+  await router.push({ name: 'race' });
 }
 
 function cancel() {

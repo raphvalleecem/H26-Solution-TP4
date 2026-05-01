@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router';
 import RaceClassForm from '../../components/RaceClassForm.vue';
-import { addRaceClass, type RaceClass } from '@/models/raceClasses.ts';
+import { addRaceClass, type RaceClass } from '@/models/raceClass.ts';
 
 const router = useRouter();
 
-async function createClass(payload: RaceClass) {
-  await addRaceClass(payload);
+async function createClass(value: Omit<RaceClass, 'id'>) {
+  await addRaceClass(value);
   await router.push({ name: 'race-class' });
 }
 

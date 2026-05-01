@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue';
-import { type HandicapType } from '../models/handicapTypes';
-import { type RaceClassType } from '../models/raceClassTypes';
-import axios from 'axios';
-import type { RaceClass } from '@/models/raceClasses.ts';
+import { getHandicapTypes, type HandicapType } from '../models/handicapTypes';
+import { getRaceClassTypes, type RaceClassType } from '../models/raceClassTypes';
+import type { RaceClass } from '@/models/raceClass.ts';
 
-const raceClasseTypes = ref<RaceClassType[]>([]);
+const raceClassTypes = ref<RaceClassType[]>([]);
 const handicapTypes = ref<HandicapType[]>([]);
 
 type RaceClassFormViewModel = {
@@ -36,11 +35,11 @@ const props = withDefaults(
 );
 
 onMounted(async () => {
-  await loadRaceClasseTypes();
+  await loadRaceClassTypes();
   await loadHandicapTypes();
 
-  if (form.raceClassTypeId === 0 && raceClasseTypes.value.length > 0) {
-    form.raceClassTypeId = raceClasseTypes.value[0]?.id || 0;
+  if (form.raceClassTypeId === 0 && raceClassTypes.value.length > 0) {
+    form.raceClassTypeId = raceClassTypes.value[0]?.id || 0;
   }
 
   if (form.handicapTypeId === 0 && handicapTypes.value.length > 0) {
@@ -48,32 +47,12 @@ onMounted(async () => {
   }
 });
 
-async function loadRaceClasseTypes() {
-  raceClasseTypes.value = await getRaceClassTypes();
+async function loadRaceClassTypes() {
+  raceClassTypes.value = await getRaceClassTypes();
 }
 
 async function loadHandicapTypes() {
   handicapTypes.value = await getHandicapTypes();
-}
-
-async function getRaceClassTypes(): Promise<RaceClassType[]> {
-  try {
-    const response = await axios.get<RaceClassType[]>('http://localhost:3000/race-class-type');
-    return response.data;
-  } catch (error) {
-    console.error('Error:', error);
-    return [];
-  }
-}
-
-async function getHandicapTypes(): Promise<HandicapType[]> {
-  try {
-    const response = await axios.get<HandicapType[]>('http://localhost:3000/handicap-type');
-    return response.data;
-  } catch (error) {
-    console.error('Error:', error);
-    return [];
-  }
 }
 
 const emit = defineEmits<{
@@ -85,7 +64,7 @@ const form = reactive<RaceClassFormViewModel>({ ...props.initialValue });
 
 function onSubmit() {
   const selectedHandicapType = handicapTypes.value.find((type) => type.id === form.handicapTypeId);
-  const selectedRaceClassType = raceClasseTypes.value.find(
+  const selectedRaceClassType = raceClassTypes.value.find(
     (type) => type.id === form.raceClassTypeId,
   );
 
@@ -111,6 +90,15 @@ function onSubmit() {
       <div class="form-group">
         <label for="class-name">Name</label>
         <input id="class-name" v-model.trim="form.name" class="form-control" required type="text" />
+      </div>
+
+      <div class="form-group">
+        <label for="class-type">Race class type</label>
+        <select id="class-type" v-model.number="form.raceClassTypeId" class="form-control" required>
+          <option v-for="type in raceClassTypes" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -146,15 +134,6 @@ function onSubmit() {
           required
         >
           <option v-for="type in handicapTypes" :key="type.id" :value="type.id">
-            {{ type.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="class-type">Race class type</label>
-        <select id="class-type" v-model.number="form.raceClassTypeId" class="form-control" required>
-          <option v-for="type in raceClasseTypes" :key="type.id" :value="type.id">
             {{ type.name }}
           </option>
         </select>

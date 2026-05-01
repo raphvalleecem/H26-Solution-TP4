@@ -6,7 +6,7 @@ import DataTablesCore from 'datatables.net-bs4';
 import { type Boat, boats } from '@/models/boats.ts';
 import { raceEntries } from '@/models/raceEntries.ts';
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
-import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);
@@ -23,7 +23,7 @@ type RaceForm = {
 
 const route = useRoute();
 const raceId = computed(() => Number.parseInt(String(route.params.id), 10));
-const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)));
+const race = computed(() => fetchRace());
 
 const raceClasses = ref<RaceClass[]>([]);
 const seriesRows = ref<Series[]>([]);

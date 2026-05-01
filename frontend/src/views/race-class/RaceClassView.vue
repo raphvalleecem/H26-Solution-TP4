@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { getRaceClasses, type RaceClass } from '@/models/raceClasses.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 
 DataTable.use(DataTablesCore);
 

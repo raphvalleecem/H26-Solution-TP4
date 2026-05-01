@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
-import { raceClasses } from '../models/raceClasses';
+import { raceClasses } from '../models/raceClass.ts';
 
 type SeriesFormPayload = {
   name: string;

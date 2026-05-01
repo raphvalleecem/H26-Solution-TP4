@@ -394,7 +394,26 @@ router.get('/race-class-type', async (req: Request, res: Response) => {
 //#region RaceClass
 router.get('/race-class', async (req: Request, res: Response) => {
     try {
-        const raceClass = await getProvider().getRaceClass();
+        const raceClass = await getProvider().getRaceClasses();
+        res.json(raceClass);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+router.get('/race-class/:id', async (req: Request, res: Response) => {
+    try {
+        const parsedId = Number(req.params.id);
+
+        if (Number.isNaN(parsedId)) {
+            return res.status(400).json({error: "id must be a number"});
+        }
+
+        const raceClass = await getProvider().getRaceClassById(parsedId);
+
+        if (!raceClass) {
+            return res.status(404).json({error: "RaceClass not found"});
+        }
+
         res.json(raceClass);
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});

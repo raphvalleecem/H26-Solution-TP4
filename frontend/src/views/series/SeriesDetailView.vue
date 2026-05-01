@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import { boats } from '@/models/boats.ts';
-import { raceClasses } from '@/models/raceClasses.ts';
+import { raceClasses } from '@/models/raceClass.ts';
 import { races } from '@/models/races.ts';
 import { seriesEntries } from '@/models/seriesEntries.ts';
 import { seriesOutcomes } from '@/models/seriesOutcomes.ts';
