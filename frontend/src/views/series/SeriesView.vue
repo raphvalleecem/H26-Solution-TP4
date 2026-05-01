@@ -1,14 +1,21 @@
 <script lang="ts" setup>
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { raceClasses } from '@/models/raceClass.ts';
-import { seriesRows } from '@/models/series.ts';
+import { onMounted, ref } from 'vue';
+import { getSeries, type Series } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);
 
-function getRaceClassName(raceClassId: number): string {
-  return raceClasses.find((item) => item.id === raceClassId)?.name ?? `#${raceClassId}`;
+const series = ref<Series[]>([]);
+const router = useRouter();
+
+onMounted(async () => {
+  await loadSeries();
+});
+
+async function loadSeries() {
+  series.value = await getSeries();
 }
 </script>
 
@@ -31,14 +38,14 @@ function getRaceClassName(raceClassId: number): string {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in seriesRows" :key="item.id">
+        <tr v-for="item in series" :key="item.id">
           <td>{{ item.id }}</td>
           <td>{{ item.name }}</td>
           <td>{{ item.nbRaces }}</td>
           <td>{{ item.nbRacesToCount }}</td>
           <td>
-            <RouterLink :to="`/race-class/${item.raceClassId}`">
-              {{ getRaceClassName(item.raceClassId) }}
+            <RouterLink :to="`/race-class/${item.raceClass.id}`">
+              {{ item.raceClass.name }}
             </RouterLink>
           </td>
           <td>
