@@ -13,13 +13,13 @@ import type { RaceClass } from '@/models/raceClass.ts';
 DataTable.use(DataTablesCore);
 
 const route = useRoute();
-const classId = computed(() => Number.parseInt(String(route.params.id), 10));
+const raceClassId = computed(() => Number.parseInt(String(route.params.id), 10));
 
+const raceClass = ref<RaceClass | null>(null);
 const races = ref<Race[]>([]);
 const raceClassTypes = ref<RaceClassType[]>([]);
 const handicapTypes = ref<HandicapType[]>([]);
 const series = ref<Series[]>([]);
-const raceClass = ref<RaceClass | null>(null);
 
 const isLoading = ref(true);
 const isEditing = ref(false);
@@ -110,7 +110,7 @@ async function saveChanges() {
 }
 
 async function fetchRaceClass() {
-  if (Number.isNaN(classId.value)) {
+  if (Number.isNaN(raceClassId.value)) {
     raceClass.value = null;
     errorMessage.value = 'Invalid race class id.';
     isLoading.value = false;
@@ -121,7 +121,7 @@ async function fetchRaceClass() {
   errorMessage.value = '';
 
   try {
-    const response = await axios.get<RaceClass>(`/race-class/${classId.value}`);
+    const response = await axios.get<RaceClass>(`/race-class/${raceClassId.value}`);
     const data: RaceClass = response.data;
 
     const loadedRaceClass: RaceClass = {
@@ -158,7 +158,7 @@ async function fetchRaceClass() {
   }
 }
 
-watch(classId, () => {
+watch(raceClassId, () => {
   void fetchRaceClass();
 });
 
