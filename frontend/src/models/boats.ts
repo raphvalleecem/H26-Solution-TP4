@@ -1,10 +1,10 @@
 export type Boat = {
-  id: number
-  name: string
-  sailNumber: number
-  helmName: string
-  boatClassId: number
-}
+  id: number;
+  name: string;
+  sailNumber: number;
+  helmName: string;
+  boatClassId: number;
+};
 
 export const boats: Boat[] = [
   { id: 1, name: 'Boat 1', sailNumber: 2001, helmName: 'Helm 1', boatClassId: 1 },
@@ -37,8 +37,8 @@ export const boats: Boat[] = [
   { id: 28, name: 'Boat 28', sailNumber: 2028, helmName: 'Helm 28', boatClassId: 4 },
   { id: 29, name: 'Boat 29', sailNumber: 2029, helmName: 'Helm 29', boatClassId: 5 },
   { id: 30, name: 'Boat 30', sailNumber: 2030, helmName: 'Helm 30', boatClassId: 6 },
-]
+];
 
 export function findBoatById(id: number): Boat | undefined {
-  return boats.find((boat) => boat.id === id)
+  return boats.find((boat) => boat.id === id);
 }

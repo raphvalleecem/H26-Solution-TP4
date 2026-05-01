@@ -1,20 +1,20 @@
 <script lang="ts" setup>
-import { reactive } from 'vue'
-import { raceClasses } from '../models/raceClasses'
+import { reactive } from 'vue';
+import { raceClasses } from '../models/raceClass.ts';
 
 type SeriesFormPayload = {
-  name: string
-  nbRaces: number
-  nbRacesToCount: number
-  raceClassId: number
-  isCompleted?: boolean
-}
+  name: string;
+  nbRaces: number;
+  nbRacesToCount: number;
+  raceClassId: number;
+  isCompleted?: boolean;
+};
 
 const props = withDefaults(
   defineProps<{
-    title: string
-    submitLabel: string
-    initialValue?: SeriesFormPayload
+    title: string;
+    submitLabel: string;
+    initialValue?: SeriesFormPayload;
   }>(),
   {
     initialValue: () => ({
@@ -25,17 +25,17 @@ const props = withDefaults(
       isCompleted: false,
     }),
   },
-)
+);
 
 const emit = defineEmits<{
-  submit: [value: SeriesFormPayload]
-  cancel: []
-}>()
+  submit: [value: SeriesFormPayload];
+  cancel: [];
+}>();
 
-const form = reactive<SeriesFormPayload>({ ...props.initialValue })
+const form = reactive<SeriesFormPayload>({ ...props.initialValue });
 
 function onSubmit() {
-  emit('submit', { ...form })
+  emit('submit', { ...form });
 }
 </script>
 

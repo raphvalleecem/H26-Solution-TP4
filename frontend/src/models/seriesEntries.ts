@@ -1,8 +1,8 @@
 export type SeriesEntry = {
-  id: number
-  boatId: number
-  seriesId: number
-}
+  id: number;
+  boatId: number;
+  seriesId: number;
+};
 
 export const seriesEntries: SeriesEntry[] = [
   { id: 1, boatId: 1, seriesId: 1 },
@@ -12,8 +12,8 @@ export const seriesEntries: SeriesEntry[] = [
   { id: 5, boatId: 3, seriesId: 2 },
   { id: 6, boatId: 6, seriesId: 3 },
   { id: 7, boatId: 7, seriesId: 3 },
-]
+];
 
 export function findSeriesEntryById(id: number): SeriesEntry | undefined {
-  return seriesEntries.find((row) => row.id === id)
+  return seriesEntries.find((row) => row.id === id);
 }

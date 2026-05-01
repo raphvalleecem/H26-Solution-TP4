@@ -1,13 +1,16 @@
+import axios from 'axios';
+
 export type HandicapType = {
-  id: number
-  name: 'PY' | 'TMF'
-}
+  id: number;
+  name: string;
+};
 
-export const handicapTypes: HandicapType[] = [
-  { id: 1, name: 'PY' },
-  { id: 2, name: 'TMF' },
-]
-
-export function findHandicapTypeById(id: number): HandicapType | undefined {
-  return handicapTypes.find((row) => row.id === id)
+export async function getHandicapTypes(): Promise<HandicapType[]> {
+  try {
+    const response = await axios.get<HandicapType[]>('http://localhost:3000/handicap-type');
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
 }
