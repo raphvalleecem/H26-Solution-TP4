@@ -60,19 +60,28 @@ const columns = [
 ];
 
 function handleTableClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-  if (target.classList.contains('race-class-link')) {
-    event.preventDefault();
-    const id = target.getAttribute('data-id');
-    router.push(`/race-class/${id}`);
-  } else if (target.classList.contains('series-link')) {
-    event.preventDefault();
-    const id = target.getAttribute('data-id');
-    router.push(`/series/${id}`);
-  } else if (target.classList.contains('race-details')) {
-    event.preventDefault();
-    const id = target.getAttribute('data-id');
-    router.push(`/race/${id}`);
+  if (!(event.target instanceof Element)) {
+    return;
+  }
+
+  const link = event.target.closest('a.race-class-link, a.series-link, a.race-details');
+  if (!link) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const id = link.getAttribute('data-id');
+  if (!id) {
+    return;
+  }
+
+  if (link.classList.contains('race-class-link')) {
+    router.push({ name: 'race-class-details', params: { id } });
+  } else if (link.classList.contains('series-link')) {
+    router.push({ name: 'series-details', params: { id } });
+  } else if (link.classList.contains('race-details')) {
+    router.push({ name: 'race-details', params: { id } });
   }
 }
 </script>

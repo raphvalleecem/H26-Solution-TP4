@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
@@ -8,6 +8,7 @@ import { raceEntries } from '@/models/raceEntries.ts';
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
+import { getRaceById, type Race } from '@/models/races.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -22,11 +23,12 @@ type RaceForm = {
 };
 
 const route = useRoute();
-const raceId = computed(() => Number.parseInt(String(route.params.id), 10));
-const race = computed(() => fetchRace());
+const race = ref<Race | null>(null);
 
 const raceClasses = ref<RaceClass[]>([]);
 const seriesRows = ref<Series[]>([]);
+const isLoading = ref(true);
+const errorMessage = ref('');
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses();
@@ -39,7 +41,7 @@ const selectedBoatId = ref<number | null>(null);
 
 const form = reactive<RaceForm>({
   name: '',
-  date: '',
+  startDate: '',
   startTime: '',
   track: '',
   raceClassId: 0,
@@ -49,19 +51,76 @@ const form = reactive<RaceForm>({
 
 const original = ref<RaceForm | null>(null);
 
-if (race.value) {
-  const seed: RaceForm = {
-    name: race.value.name,
-    date: race.value.date,
-    startTime: race.value.startTime,
-    track: race.value.track,
-    raceClassId: race.value.raceClassId,
-    seriesId: race.value.seriesId,
-    isCompleted: race.value.isCompleted,
-  };
-  original.value = seed;
-  Object.assign(form, seed);
+function relationId(value: unknown): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'object' && value !== null && 'id' in value) {
+    const id = Number((value as { id?: unknown }).id);
+    return Number.isFinite(id) ? id : 0;
+  }
+
+  return 0;
 }
+
+async function loadRace() {
+  const raceId = Number.parseInt(String(route.params.id), 10);
+
+  if (Number.isNaN(raceId)) {
+    race.value = null;
+    original.value = null;
+    errorMessage.value = 'Invalid race id.';
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const loadedRace = await getRaceById(raceId);
+
+    if (!loadedRace) {
+      race.value = null;
+      original.value = null;
+      errorMessage.value = 'Race not found.';
+      return;
+    }
+
+    race.value = loadedRace;
+
+    const seed: RaceForm = {
+      name: loadedRace.name,
+      startDate: loadedRace.startDate,
+      startTime: loadedRace.startTime,
+      track: loadedRace.track,
+      raceClassId: relationId((loadedRace as { raceClass?: unknown }).raceClass),
+      seriesId: relationId((loadedRace as { series?: unknown }).series),
+      isCompleted: loadedRace.isCompleted,
+    };
+
+    original.value = seed;
+    Object.assign(form, seed);
+  } catch {
+    race.value = null;
+    original.value = null;
+    errorMessage.value = 'Unable to load race details. Please try again.';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  void loadRace();
+});
+
+watch(
+  () => route.params.id,
+  () => {
+    void loadRace();
+  },
+);
 
 const hasChanges = computed(() => {
   if (!original.value) {
@@ -75,6 +134,10 @@ const raceClassName = computed(() => {
 });
 
 const seriesName = computed(() => {
+  if (!form.seriesId) {
+    return 'Hors-série';
+  }
+
   return seriesRows.value.find((item) => item.id === form.seriesId)?.name ?? '-';
 });
 
@@ -291,7 +354,9 @@ function removeEntry(row: EntryDisplayRow) {
   <section class="container mt-3">
     <h1>Race details</h1>
 
-    <div v-if="!race" class="alert alert-warning mt-3">Race not found.</div>
+    <div v-if="isLoading" class="alert alert-info mt-3">Loading race details...</div>
+    <div v-else-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+    <div v-else-if="!race" class="alert alert-warning mt-3">Race not found.</div>
 
     <div v-else>
       <table class="table table-bordered mt-3">
@@ -309,7 +374,12 @@ function removeEntry(row: EntryDisplayRow) {
           <tr>
             <th>Date</th>
             <td>
-              <input v-model="form.date" :readonly="!isEditing" class="form-control" type="date" />
+              <input
+                v-model="form.startDate"
+                :readonly="!isEditing"
+                class="form-control"
+                type="date"
+              />
             </td>
           </tr>
           <tr>
@@ -326,7 +396,12 @@ function removeEntry(row: EntryDisplayRow) {
           <tr>
             <th>Track</th>
             <td>
-              <input v-model="form.track" :readonly="!isEditing" class="form-control" type="text" />
+              <input
+                v-model="form.track"
+                :readonly="!isEditing"
+                class="form-control"
+                type="text"
+              />
             </td>
           </tr>
           <tr>
@@ -345,9 +420,10 @@ function removeEntry(row: EntryDisplayRow) {
           <tr>
             <th>Series</th>
             <td>
-              <RouterLink v-if="!isEditing" :to="`/series/${form.seriesId}`">{{
-                seriesName
-              }}</RouterLink>
+              <RouterLink v-if="!isEditing && form.seriesId" :to="`/series/${form.seriesId}`">
+                {{ seriesName }}
+              </RouterLink>
+              <span v-else-if="!isEditing">{{ seriesName }}</span>
               <select v-else v-model.number="form.seriesId" class="form-control">
                 <option v-for="item in seriesRows" :key="item.id" :value="item.id">
                   {{ item.name }}

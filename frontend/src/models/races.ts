@@ -44,6 +44,11 @@ export async function getRaces(): Promise<Race[]> {
   }
 }
 
+export async function getRaceById(id: number): Promise<Race | undefined> {
+  const races = await getRaces();
+  return races.find((race) => race.id === id);
+}
+
 export async function addRace(formData: RaceCreatePayload): Promise<void> {
   try {
     const response = await axios.post('http://localhost:3000/race/create', formData);

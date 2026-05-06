@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express';
 import {FetchProvider} from "./data/fetch-provider.service";
-import {Boat, BoatClass, Race, RaceClass, Series} from "./entity/entities";
+import {Boat, BoatClass, Race, RaceClass, RaceEntry, Series} from "./entity/entities";
 import multer from "multer";
 
 const router = Router();
@@ -117,6 +117,60 @@ router.post('/race/delete', upload.none(), async (req: Request, res: Response) =
         await getProvider().deleteRace(race);
 
         res.json({message: "Race deleted successfully"});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+//#endregion
+
+//#region RaceEntry
+router.post('/race-entry/create', upload.none(), async (req: Request, res: Response) => {
+    try {
+        const {boatId, raceId} = req.body;
+
+        if (boatId === undefined || boatId === null || String(boatId).trim() === "") {
+            return res.status(400).json({error: "boatId is required"});
+        }
+
+        if (raceId === undefined || raceId === null || String(raceId).trim() === "") {
+            return res.status(400).json({error: "raceId is required"});
+        }
+
+        const parsedBoatId = Number(boatId);
+        const parsedRaceId = Number(raceId);
+
+        if (!Number.isInteger(parsedBoatId) || parsedBoatId <= 0) {
+            return res.status(400).json({error: "boatId must be a positive integer"});
+        }
+
+        if (!Number.isInteger(parsedRaceId) || parsedRaceId <= 0) {
+            return res.status(400).json({error: "raceId must be a positive integer"});
+        }
+
+        const boat = await getProvider().getBoatById(parsedBoatId);
+        if (!boat) {
+            return res.status(404).json({error: "Boat not found"});
+        }
+
+        const race = await getProvider().getRaceById(parsedRaceId);
+        if (!race) {
+            return res.status(404).json({error: "Race not found"});
+        }
+
+        const existingRaceEntries = await getProvider().getRaceEntries();
+        const duplicateEntry = existingRaceEntries.find((entry) => entry.boat?.id === parsedBoatId && entry.race?.id === parsedRaceId);
+        if (duplicateEntry) {
+            return res.status(409).json({error: "RaceEntry already exists for this boat and race"});
+        }
+
+        const raceEntry = new RaceEntry();
+        raceEntry.boat = boat;
+        raceEntry.race = race;
+
+        const createdRaceEntry = await getProvider().addRaceEntry(raceEntry);
+
+        res.status(201).json({message: "RaceEntry created successfully", raceEntry: createdRaceEntry});
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
