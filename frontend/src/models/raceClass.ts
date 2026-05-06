@@ -11,14 +11,21 @@ export type RaceClass = {
   raceClassType: RaceClassType;
 };
 
+let raceClassesCache: RaceClass[] = [];
+
 export async function getRaceClasses(): Promise<RaceClass[]> {
   try {
     const response = await axios.get<RaceClass[]>('http://localhost:3000/race-class');
+    raceClassesCache = response.data;
     return response.data;
   } catch (error) {
     console.error('Error:', error);
     return [];
   }
+}
+
+export function findRaceClassById(id: number): RaceClass | undefined {
+  return raceClassesCache.find((raceClass) => raceClass.id === id);
 }
 
 export async function addRaceClass(payload: Omit<RaceClass, 'id'>): Promise<void> {

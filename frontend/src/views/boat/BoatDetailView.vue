@@ -147,7 +147,14 @@ async function fetchBoat() {
     }
 
     const loadedBoat = data
-
+    boat.value = {
+      id: loadedBoat.id,
+      name: loadedBoat.name,
+      sailNumber: loadedBoat.sailNumber,
+      helmName: loadedBoat.helmName,
+      boatClassId: loadedBoat.boatClassId,
+      boatClassName: null,
+    }
 
     const seed: BoatForm = {
       name: loadedBoat.name,

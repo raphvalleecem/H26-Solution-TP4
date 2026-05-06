@@ -5,11 +5,12 @@ import { RouterLink } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import type { Boat } from '@/models/boats.ts';
-import { getHandicapTypes } from '@/models/handicapTypes.ts';
+import type { BoatClass } from '@/models/boatClasses.ts';
 
 DataTable.use(DataTablesCore);
 
 const boats = ref<Boat[]>([]);
+const boatClasses = ref<BoatClass[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const hasBoats = computed(() => boats.value.length > 0);
@@ -28,20 +29,41 @@ async function loadBoats() {
   }
 }
 
+async function loadBoatClasses() {
+  try {
+    const response = await axios.get<BoatClass[]>('/boat-class');
+    boatClasses.value = response.data;
+  } catch {
+    // keep boatClasses empty on error
+  }
+}
+
 onMounted(() => {
-  void loadBoats();
+  // load boats and boat classes in parallel
+  void Promise.all([loadBoats(), loadBoatClasses()]);
 });
 
 function getBoatClassLabel(boat: Boat): string {
-  if (boat.name) {
-    return boat.name;
+  type BoatRow = Boat & { boatClass?: { id: number; name?: string }; boatClassId?: number | null };
+  const b = boat as BoatRow;
+  const classId = b.boatClassId ?? b.boatClass?.id;
+  const classNameFromBoat = b.boatClass?.name;
+
+  if (classId === null || classId === undefined) {
+    return '-';
   }
 
-  if (boat.boatClassId !== null) {
-    return `#${boat.boatClassId}`;
+  // prefer name embedded in the boat object
+  if (typeof classNameFromBoat === 'string' && classNameFromBoat.length > 0) {
+    return classNameFromBoat;
   }
 
-  return '-';
+  const bc = boatClasses.value.find((c) => Number(c.id) === Number(classId));
+  if (bc) {
+    return bc.name;
+  }
+
+  return `#${classId}`;
 }
 
 </script>
@@ -77,12 +99,15 @@ function getBoatClassLabel(boat: Boat): string {
           <td>{{ boat.name }}</td>
           <td>{{ boat.sailNumber }}</td>
           <td>{{ boat.helmName }}</td>
-          <td>
-            <RouterLink v-if="boat.boatClassId !== null" :to="`/boat-class/${boat.boatClassId}`">
-              {{ getBoatClassLabel(boat) }}
-            </RouterLink>
-            <span v-else>-</span>
-          </td>
+                          <td>
+                            <RouterLink
+                              v-if="(boat as any).boatClassId !== null || (boat as any).boatClass?.id !== undefined"
+                              :to="`/boat-class/${(boat as any).boatClassId ?? (boat as any).boatClass?.id}`"
+                            >
+                              {{ getBoatClassLabel(boat) }}
+                            </RouterLink>
+                            <span v-else>-</span>
+                          </td>
           <td>
             <RouterLink :to="`/boat/${boat.id}`" class="btn btn-sm btn-secondary"
               >Details</RouterLink

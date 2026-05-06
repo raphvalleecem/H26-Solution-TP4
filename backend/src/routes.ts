@@ -41,7 +41,6 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
 
         const parsedStartTime = new Date(startTime);
         const parsedRaceClassId = Number(raceClassId);
-        const parsedSeriesId = Number(seriesId);
 
         // if (Number.isNaN(parsedStartTime.getTime())) {
         //     return res.status(400).json({error: "startTime must be a valid date"});
@@ -254,6 +253,26 @@ router.post('/boat/delete', upload.none(), async (req: Request, res: Response) =
         await getProvider().deleteBoat(boat);
 
         res.json({message: "Boat deleted successfully"});
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+
+router.get('/boat/:id', async (req: Request, res: Response) => {
+    try {
+        const parsedId = Number(req.params.id);
+
+        if (Number.isNaN(parsedId)) {
+            return res.status(400).json({error: "id must be a number"});
+        }
+
+        const boat = await getProvider().getBoatById(parsedId);
+
+        if (!boat) {
+            return res.status(404).json({error: "Boat not found"});
+        }
+
+        res.json(boat);
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
