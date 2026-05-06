@@ -101,17 +101,17 @@ function onSubmit() {
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="min-handicap">Min handicap</label>
-        <input
-          id="min-handicap"
-          v-model.number="form.minHandicap"
-          class="form-control"
-          required
-          step="0.01"
-          type="number"
-        />
-      </div>
+        <div class="form-group">
+          <label for="min-handicap">Min handicap</label>
+          <input
+            id="min-handicap"
+            v-model.number="form.minHandicap"
+            class="form-control"
+            required
+            step="0.01"
+            type="number"
+          />
+        </div>
 
       <div class="form-group">
         <label for="max-handicap">Max handicap</label>

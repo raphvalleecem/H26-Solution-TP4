@@ -4,43 +4,13 @@ import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { handicapTypes } from '@/models/handicapTypes.ts';
+import type { Boat } from '@/models/boats.ts';
+import type { BoatClass } from '@/models/boatClasses.ts';
 
 DataTable.use(DataTablesCore);
 
-type BoatRow = {
-  id: number;
-  name: string;
-  sailNumber: number;
-  helmName: string;
-  boatClassId: number | null;
-  boatClassName: string | null;
-  handicapValue: number | null;
-  handicapTypeId: number | null;
-  handicapTypeName: string | null;
-};
-
-type BoatApiRow = {
-  id?: unknown;
-  name?: unknown;
-  sailNumber?: unknown;
-  sail_number?: unknown;
-  helmName?: unknown;
-  helm_name?: unknown;
-  boatClassId?: unknown;
-  boat_class_id?: unknown;
-  boatClass?: {
-    id?: unknown;
-    name?: unknown;
-    handicapValue?: unknown;
-    handicap_value?: unknown;
-    handicapTypeId?: unknown;
-    handicap_type_id?: unknown;
-    handicapType?: { id?: unknown; name?: unknown } | string | null;
-  } | null;
-};
-
-const boats = ref<BoatRow[]>([]);
+const boats = ref<Boat[]>([]);
+const boatClasses = ref<BoatClass[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const hasBoats = computed(() => boats.value.length > 0);
@@ -50,8 +20,8 @@ async function loadBoats() {
   errorMessage.value = '';
 
   try {
-    const response = await axios.get<BoatApiRow[]>('/boat');
-    boats.value = response.data.map((row) => normalizeBoat(row));
+    const response = await axios.get<Boat[]>('/boat');
+    boats.value = response.data;
   } catch {
     errorMessage.value = 'Unable to load boats. Please try again.';
   } finally {
@@ -59,73 +29,43 @@ async function loadBoats() {
   }
 }
 
+async function loadBoatClasses() {
+  try {
+    const response = await axios.get<BoatClass[]>('/boat-class');
+    boatClasses.value = response.data;
+  } catch {
+    // keep boatClasses empty on error
+  }
+}
+
 onMounted(() => {
-  void loadBoats();
+  // load boats and boat classes in parallel
+  void Promise.all([loadBoats(), loadBoatClasses()]);
 });
 
-function toNumberOrNull(value: unknown): number | null {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
+function getBoatClassLabel(boat: Boat): string {
+  type BoatRow = Boat & { boatClass?: { id: number; name?: string }; boatClassId?: number | null };
+  const b = boat as BoatRow;
+  const classId = b.boatClassId ?? b.boatClass?.id;
+  const classNameFromBoat = b.boatClass?.name;
 
-function normalizeBoat(row: BoatApiRow): BoatRow {
-  const boatClass =
-    typeof row.boatClass === 'object' && row.boatClass !== null ? row.boatClass : null;
-  const handicapTypeObj =
-    typeof boatClass?.handicapType === 'object' && boatClass.handicapType !== null
-      ? boatClass.handicapType
-      : null;
-  const fallbackTypeName =
-    typeof boatClass?.handicapType === 'string' ? boatClass.handicapType : null;
-
-  return {
-    id: toNumberOrNull(row.id) ?? 0,
-    name: typeof row.name === 'string' ? row.name : '',
-    sailNumber: toNumberOrNull(row.sailNumber ?? row.sail_number) ?? 0,
-    helmName:
-      typeof row.helmName === 'string'
-        ? row.helmName
-        : typeof row.helm_name === 'string'
-          ? row.helm_name
-          : '',
-    boatClassId:
-      toNumberOrNull(row.boatClassId ?? row.boat_class_id) ?? toNumberOrNull(boatClass?.id),
-    boatClassName: typeof boatClass?.name === 'string' ? boatClass.name : null,
-    handicapValue: toNumberOrNull(boatClass?.handicapValue ?? boatClass?.handicap_value),
-    handicapTypeId:
-      toNumberOrNull(boatClass?.handicapTypeId ?? boatClass?.handicap_type_id) ??
-      toNumberOrNull(handicapTypeObj?.id),
-    handicapTypeName:
-      (typeof handicapTypeObj?.name === 'string' ? handicapTypeObj.name : null) ?? fallbackTypeName,
-  };
-}
-
-function getBoatClassLabel(boat: BoatRow): string {
-  if (boat.boatClassName) {
-    return boat.boatClassName;
+  if (classId === null || classId === undefined) {
+    return '-';
   }
 
-  if (boat.boatClassId !== null) {
-    return `#${boat.boatClassId}`;
+  // prefer name embedded in the boat object
+  if (typeof classNameFromBoat === 'string' && classNameFromBoat.length > 0) {
+    return classNameFromBoat;
   }
 
-  return '-';
+  const bc = boatClasses.value.find((c) => Number(c.id) === Number(classId));
+  if (bc) {
+    return bc.name;
+  }
+
+  return `#${classId}`;
 }
 
-function getHandicapName(boat: BoatRow): string {
-  if (boat.handicapTypeName) {
-    return boat.handicapTypeName;
-  }
-
-  if (boat.handicapTypeId !== null) {
-    return (
-      handicapTypes.find((item) => item.id === boat.handicapTypeId)?.name ??
-      `#${boat.handicapTypeId}`
-    );
-  }
-
-  return '-';
-}
 </script>
 
 <template>
@@ -150,7 +90,6 @@ function getHandicapName(boat: BoatRow): string {
           <th>Sail number</th>
           <th>Helm name</th>
           <th>Boat class</th>
-          <th>Handicap</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -160,16 +99,15 @@ function getHandicapName(boat: BoatRow): string {
           <td>{{ boat.name }}</td>
           <td>{{ boat.sailNumber }}</td>
           <td>{{ boat.helmName }}</td>
-          <td>
-            <RouterLink v-if="boat.boatClassId !== null" :to="`/boat-class/${boat.boatClassId}`">
-              {{ getBoatClassLabel(boat) }}
-            </RouterLink>
-            <span v-else>-</span>
-          </td>
-          <td>
-            {{ boat.handicapValue ?? '-' }}
-            {{ getHandicapName(boat) }}
-          </td>
+                          <td>
+                            <RouterLink
+                              v-if="(boat as any).boatClassId !== null || (boat as any).boatClass?.id !== undefined"
+                              :to="`/boat-class/${(boat as any).boatClassId ?? (boat as any).boatClass?.id}`"
+                            >
+                              {{ getBoatClassLabel(boat) }}
+                            </RouterLink>
+                            <span v-else>-</span>
+                          </td>
           <td>
             <RouterLink :to="`/boat/${boat.id}`" class="btn btn-sm btn-secondary"
               >Details</RouterLink

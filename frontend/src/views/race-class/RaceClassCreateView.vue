@@ -20,6 +20,6 @@ function cancel() {
     submit-label="Create"
     title="Create race class"
     @cancel="cancel"
-    @submit-class="createClass"
+    @submit="createClass"
   />
 </template>
