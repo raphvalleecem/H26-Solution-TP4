@@ -80,7 +80,6 @@ function getBoatClassLabel(boat: Boat): string {
     </div>
 
     <div v-if="isLoading" class="mt-3">Loading boats...</div>
-    <div v-else-if="!hasBoats" class="mt-3">No boat found.</div>
 
     <DataTable v-else class="table table-striped table-bordered mt-3">
       <thead>
@@ -94,6 +93,14 @@ function getBoatClassLabel(boat: Boat): string {
         </tr>
       </thead>
       <tbody>
+        <tr v-if="!hasBoats">
+          <td class="text-center">No boat found.</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
         <tr v-for="boat in boats" :key="boat.id">
           <td>{{ boat.id }}</td>
           <td>{{ boat.name }}</td>

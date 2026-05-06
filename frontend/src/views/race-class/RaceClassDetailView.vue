@@ -93,14 +93,30 @@ async function saveChanges() {
   isEditing.value = false;
 
   try {
+    const selectedHandicapType = handicapTypes.value.find((t) => t.id === Number(form.handicapTypeId));
+    const selectedRaceClassType = raceClassTypes.value.find((t) => t.id === Number(form.raceClassTypeId));
+
     await axios.post('/race-class/update', {
       id: raceClass.value.id,
       name: form.name,
       minHandicap: form.minHandicap === '' ? null : Number(form.minHandicap),
       maxHandicap: form.maxHandicap === '' ? null : Number(form.maxHandicap),
-      handicapTypeId: form.handicapTypeId === '' ? null : Number(form.handicapTypeId),
-      raceClassTypeId: Number(form.raceClassTypeId),
+      // send objects to match create payload
+      handicapType: selectedHandicapType ?? null,
+      raceClassType: selectedRaceClassType ?? null,
     });
+
+    // optimistically update local model
+    if (selectedHandicapType) {
+      raceClass.value!.handicapType = selectedHandicapType;
+    }
+    if (selectedRaceClassType) {
+      raceClass.value!.raceClassType = selectedRaceClassType;
+    }
+
+    // refresh from backend to ensure canonical state
+    await fetchRaceClass();
+
     original.value = JSON.stringify(form);
     isEditing.value = false;
     errorMessage.value = '';

@@ -6,3 +6,4 @@ export type BoatClass = {
   handicapValue: number;
   handicapType: HandicapType;
 };
+

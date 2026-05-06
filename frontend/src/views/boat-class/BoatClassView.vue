@@ -45,7 +45,6 @@ onMounted(() => {
     </div>
 
     <div v-if="isLoading" class="mt-3">Loading boat classes...</div>
-    <div v-else-if="!hasBoatClasses" class="mt-3">No boat class found.</div>
 
     <DataTable v-else class="table table-striped table-bordered mt-3">
       <thead>
@@ -58,6 +57,9 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
+        <tr v-if="!hasBoatClasses">
+          <td colspan="5" class="text-center">No boat class found.</td>
+        </tr>
         <tr v-for="item in boatClasses" :key="item.id">
           <td>{{ item.id }}</td>
           <td>{{ item.name }}</td>
