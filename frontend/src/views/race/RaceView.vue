@@ -25,7 +25,7 @@ const columns = [
   { data: 'name', title: 'Name' },
   { data: 'date', title: 'Date', defaultContent: '-' },
   { data: 'startTime', title: 'Start time', defaultContent: '-' },
-  { data: 'track', title: 'Track' },
+  { data: 'course', title: 'Course', defaultContent: '-' },
   {
     data: 'raceClassId',
     title: 'Race class',

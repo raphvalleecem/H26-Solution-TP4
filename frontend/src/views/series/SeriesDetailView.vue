@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import { boats } from '@/models/boats.ts';
-import { raceClasses } from '@/models/raceClass.ts';
-import { races } from '@/models/races.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
+import { getRaces, type Race } from '@/models/races.ts';
 import { seriesEntries } from '@/models/seriesEntries.ts';
 import { seriesOutcomes } from '@/models/seriesOutcomes.ts';
-import { findSeriesById } from '@/models/series.ts';
+import { findSeriesById, getSeries } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -26,6 +26,8 @@ const seriesItem = computed(() =>
   Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
 );
 
+const raceClasses = ref<RaceClass[]>([]);
+const racesList = ref<Race[]>([]);
 const isEditing = ref(false);
 const selectedBoatId = ref<number | null>(null);
 const addedBoatIds = ref<number[]>([]);
@@ -39,17 +41,28 @@ const form = reactive<SeriesForm>({
 });
 const original = ref<SeriesForm | null>(null);
 
-if (seriesItem.value) {
-  const seed: SeriesForm = {
-    name: seriesItem.value.name,
-    nbRaces: seriesItem.value.nbRaces,
-    nbRacesToCount: seriesItem.value.nbRacesToCount,
-    raceClassId: seriesItem.value.raceClassId,
-    isCompleted: seriesItem.value.isCompleted,
-  };
-  original.value = seed;
-  Object.assign(form, seed);
-}
+onMounted(async () => {
+  await getSeries();
+  raceClasses.value = await getRaceClasses();
+  racesList.value = await getRaces();
+});
+
+watch(
+  () => seriesItem.value,
+  (newSeries) => {
+    if (newSeries) {
+      const seed: SeriesForm = {
+        name: newSeries.name,
+        nbRaces: newSeries.nbRaces,
+        nbRacesToCount: newSeries.nbRacesToCount,
+        raceClassId: newSeries.raceClass?.id ?? 0,
+        isCompleted: newSeries.isCompleted,
+      };
+      original.value = seed;
+      Object.assign(form, seed);
+    }
+  },
+);
 
 const hasChanges = computed(() => {
   if (!original.value) {

@@ -10,14 +10,21 @@ export type Series = {
   raceClass: RaceClass;
 };
 
+let seriesCache: Series[] = [];
+
 export async function getSeries(): Promise<Series[]> {
   try {
     const response = await axios.get<Series[]>('http://localhost:3000/series');
+    seriesCache = response.data;
     return response.data;
   } catch (error) {
     console.error('Error:', error);
     return [];
   }
+}
+
+export function findSeriesById(id: number): Series | undefined {
+  return seriesCache.find((series) => series.id === id);
 }
 
 export async function addSeries(payload: Omit<Series, 'id'>): Promise<void> {

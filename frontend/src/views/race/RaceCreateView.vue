@@ -27,36 +27,59 @@ onMounted(async () => {
 });
 
 async function createRace(payload: RaceFormSubmitPayload) {
-  isSubmitting.value = true;
-  errorMessage.value = '';
+   isSubmitting.value = true;
+   errorMessage.value = '';
 
-  try {
-    const selectedRaceClass = raceClasses.value.find((item) => item.id === payload.raceClassId);
-    const selectedSeries = seriesRows.value.find((item) => item.id === payload.seriesId);
+   try {
+     // Combine date and time into a single ISO datetime string
+     const [hours, minutes] = payload.startTime.split(':');
+     const startDateTime = new Date(`${payload.date}T${hours}:${minutes}:00`);
 
-    if (!selectedRaceClass || !selectedSeries) {
-      errorMessage.value = 'Please select a valid race class and series.';
-      return;
-    }
+     if (isNaN(startDateTime.getTime())) {
+       throw new Error('Invalid date or time format');
+     }
 
-    const createPayload = {
-      name: payload.name,
-      date: payload.date,
-      startTime: payload.startTime,
-      track: payload.track,
-      raceClass: selectedRaceClass,
-      series: selectedSeries,
-      isCompleted: false,
-    } as any;
+     const createPayload: {
+       name: string;
+       date: string;
+       startTime: string;
+       course: string;
+       raceClassId: number;
+       seriesId: number;
+       isCompleted: boolean;
+     } = {
+       name: payload.name,
+       date: payload.date,
+       startTime: startDateTime.toISOString(),
+       course: payload.track,
+       raceClassId: payload.raceClassId,
+       seriesId: payload.seriesId,
+       isCompleted: false,
+     };
 
-    await addRace(createPayload);
-    await router.push({ name: 'race' });
-  } catch {
-    errorMessage.value = 'Unable to create race. Please try again.';
-  } finally {
-    isSubmitting.value = false;
-  }
-}
+     console.log('Creating race with payload:', createPayload);
+     await (addRace as unknown as (formData: {
+       name: string;
+       date: string;
+       startTime: string;
+       course: string;
+       raceClassId: number;
+       seriesId: number;
+       isCompleted: boolean;
+     }) => Promise<void>)(createPayload);
+     console.log('Race created successfully');
+     await router.push({ name: 'race' });
+   } catch (error) {
+     console.error('Error creating race:', error);
+     if (error instanceof Error) {
+       errorMessage.value = `Unable to create race: ${error.message}`;
+     } else {
+       errorMessage.value = 'Unable to create race. Please try again.';
+     }
+   } finally {
+     isSubmitting.value = false;
+   }
+ }
 
 function cancel() {
   router.push({ name: 'race' });

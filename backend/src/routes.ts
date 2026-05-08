@@ -17,10 +17,14 @@ router.get('/race', async (req: Request, res: Response) => {
 });
 router.post('/race/create', upload.none(), async (req: Request, res: Response) => {
     try {
-        const {name, startTime, course, raceClassId, seriesId} = req.body;
+        const {name, date, startTime, course, raceClassId, seriesId} = req.body;
 
         if (!name || !String(name).trim()) {
             return res.status(400).json({error: "Name is required"});
+        }
+
+        if (!date) {
+            return res.status(400).json({error: "date is required"});
         }
 
         if (!startTime) {
@@ -39,8 +43,9 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "seriesId is required"});
         }
 
-        const parsedStartTime = new Date(startTime);
+        const parsedStartTime = new Date(`${date}T${startTime}`);
         const parsedRaceClassId = Number(raceClassId);
+        const parsedSeriesId = Number(seriesId);
 
         // if (Number.isNaN(parsedStartTime.getTime())) {
         //     return res.status(400).json({error: "startTime must be a valid date"});
@@ -60,18 +65,18 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(404).json({error: "RaceClass not found"});
         }
 
-        // const series = await getProvider().getSeriesById(parsedSeriesId);
+        const series = await getProvider().getSeriesById(parsedSeriesId);
 
-        // if (!series) {
-        //     return res.status(404).json({error: "Series not found"});
-        // }
+        if (!series) {
+            return res.status(404).json({error: "Series not found"});
+        }
 
         const race = new Race();
         race.name = String(name).trim();
         race.startTime = parsedStartTime;
         race.course = String(course).trim();
         race.raceClass = raceClass;
-        // race.series = series;
+        race.series = series;
 
         const createdRace = await getProvider().addRace(race);
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
 import type { RaceClass } from '../models/raceClass.ts';
-import type { Series } from '../models/series';
+import type { Series } from '../models/series.ts';
 
 type RaceFormPayload = {
   name: string;
@@ -49,68 +49,76 @@ function onSubmit() {
 </script>
 
 <template>
-  <section class="container mt-3">
-    <h1 class="mb-3">{{ title }}</h1>
+   <section class="container mt-3">
+     <h1 class="mb-3">{{ title }}</h1>
 
-    <form @submit.prevent="onSubmit">
-      <div class="form-group">
-        <label for="race-name">Name</label>
-        <input id="race-name" v-model.trim="form.name" class="form-control" required type="text" />
-      </div>
+     <div v-if="raceClasses.length === 0" class="alert alert-warning">
+       No race classes available. Please create a race class first.
+     </div>
 
-      <div class="form-group">
-        <label for="race-date">Date</label>
-        <input id="race-date" v-model="form.date" class="form-control" required type="date" />
-      </div>
+     <div v-if="seriesRows.length === 0" class="alert alert-warning">
+       No series available. Please create a series first.
+     </div>
 
-      <div class="form-group">
-        <label for="race-start-time">Start time</label>
-        <input
-          id="race-start-time"
-          v-model="form.startTime"
-          class="form-control"
-          required
-          type="time"
-        />
-      </div>
+     <form v-if="raceClasses.length > 0 && seriesRows.length > 0" @submit.prevent="onSubmit">
+       <div class="form-group">
+         <label for="race-name">Name</label>
+         <input id="race-name" v-model.trim="form.name" class="form-control" required type="text" />
+       </div>
 
-      <div class="form-group">
-        <label for="race-track">Track</label>
-        <input
-          id="race-track"
-          v-model.trim="form.track"
-          class="form-control"
-          required
-          type="text"
-        />
-      </div>
+       <div class="form-group">
+         <label for="race-date">Date</label>
+         <input id="race-date" v-model="form.date" class="form-control" required type="date" />
+       </div>
 
-      <div class="form-group">
-        <label for="race-class-id">Race class</label>
-        <select id="race-class-id" v-model.number="form.raceClassId" class="form-control" required>
-          <option v-for="item in raceClasses" :key="item.id" :value="item.id">
-            {{ item.name }}
-          </option>
-        </select>
-      </div>
+       <div class="form-group">
+         <label for="race-start-time">Start time</label>
+         <input
+           id="race-start-time"
+           v-model="form.startTime"
+           class="form-control"
+           required
+           type="time"
+         />
+       </div>
 
-      <div class="form-group">
-        <label for="series-id">Series</label>
-        <select id="series-id" v-model.number="form.seriesId" class="form-control" required>
-          <option v-for="item in seriesRows" :key="item.id" :value="item.id">
-            {{ item.name }}
-          </option>
-        </select>
-      </div>
+       <div class="form-group">
+         <label for="race-track">Track</label>
+         <input
+           id="race-track"
+           v-model.trim="form.track"
+           class="form-control"
+           required
+           type="text"
+         />
+       </div>
 
-      <div class="d-flex">
-        <button :disabled="props.isSubmitting" class="btn btn-primary mr-2" type="submit">
-          {{ props.isSubmitting ? 'Creating...' : submitLabel }}
-        </button>
-        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </section>
-</template>
+       <div class="form-group">
+         <label for="race-class-id">Race class</label>
+         <select id="race-class-id" v-model.number="form.raceClassId" class="form-control" required>
+           <option v-for="item in raceClasses" :key="item.id" :value="item.id">
+             {{ item.name }}
+           </option>
+         </select>
+       </div>
+
+       <div class="form-group">
+         <label for="series-id">Series</label>
+         <select id="series-id" v-model.number="form.seriesId" class="form-control" required>
+           <option v-for="item in seriesRows" :key="item.id" :value="item.id">
+             {{ item.name }}
+           </option>
+         </select>
+       </div>
+
+       <div class="d-flex">
+         <button :disabled="props.isSubmitting" class="btn btn-primary mr-2" type="submit">
+           {{ props.isSubmitting ? 'Creating...' : submitLabel }}
+         </button>
+         <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
+           Cancel
+         </button>
+       </div>
+     </form>
+   </section>
+ </template>
