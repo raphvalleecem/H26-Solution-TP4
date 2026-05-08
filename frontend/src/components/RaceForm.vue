@@ -20,6 +20,7 @@ const props = withDefaults(
     initialValue?: RaceFormPayload;
     raceClasses: RaceClass[];
     seriesRows: Series[];
+    isSubmitting?: boolean;
   }>(),
   {
     initialValue: () => ({
@@ -31,6 +32,7 @@ const props = withDefaults(
       seriesId: 1,
       isCompleted: false,
     }),
+    isSubmitting: false,
   },
 );
 
@@ -102,7 +104,9 @@ function onSubmit() {
       </div>
 
       <div class="d-flex">
-        <button class="btn btn-primary mr-2" type="submit">{{ submitLabel }}</button>
+        <button :disabled="props.isSubmitting" class="btn btn-primary mr-2" type="submit">
+          {{ props.isSubmitting ? 'Creating...' : submitLabel }}
+        </button>
         <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
           Cancel
         </button>

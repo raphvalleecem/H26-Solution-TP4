@@ -1,4 +1,6 @@
 import axios from 'axios';
+import type { RaceClass } from '@/models/raceClass.ts';
+import type { Series } from '@/models/series.ts';
 
 export type Race = {
   id: number;
@@ -8,6 +10,16 @@ export type Race = {
   track: string;
   raceClassId: number;
   seriesId: number;
+  isCompleted: boolean;
+};
+
+export type RaceCreatePayload = {
+  name: string;
+  date: string;
+  startTime: string;
+  track: string;
+  raceClass: RaceClass;
+  series: Series;
   isCompleted: boolean;
 };
 
@@ -35,11 +47,12 @@ export async function getRaces(): Promise<Race[]> {
   }
 }
 
-export async function addRace(formData: Omit<Race, 'id'>): Promise<void> {
+export async function addRace(formData: RaceCreatePayload): Promise<void> {
   try {
     const response = await axios.post('http://localhost:3000/race/create', formData);
     console.log('Success:', response.data);
   } catch (error) {
     console.error('Error:', error);
+    throw error;
   }
 }

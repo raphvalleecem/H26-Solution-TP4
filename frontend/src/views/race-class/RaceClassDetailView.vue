@@ -4,9 +4,9 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
+import type { BoatClass } from '@/models/boatClasses.ts';
 import { getRaces, type Race } from '@/models/races.ts';
 import { getSeries, type Series } from '@/models/series.ts';
-import { getRaceClassTypes, type RaceClassType } from '@/models/raceClassTypes.ts';
 import { getHandicapTypes, type HandicapType } from '@/models/handicapTypes.ts';
 import type { RaceClass } from '@/models/raceClass.ts';
 
@@ -16,8 +16,8 @@ const route = useRoute();
 const classId = computed(() => Number.parseInt(String(route.params.id), 10));
 
 const races = ref<Race[]>([]);
-const raceClassTypes = ref<RaceClassType[]>([]);
 const handicapTypes = ref<HandicapType[]>([]);
+const boatClasses = ref<BoatClass[]>([]);
 const series = ref<Series[]>([]);
 const raceClass = ref<RaceClass | null>(null);
 
@@ -29,27 +29,18 @@ const form = reactive({
   minHandicap: '' as string | number,
   maxHandicap: '' as string | number,
   handicapTypeId: '' as string | number,
-  raceClassTypeId: 1,
+  boatClassId: '' as string | number,
 });
 const original = ref('');
 
+const isMonotype = computed(() => raceClass.value?.boatClass !== null && raceClass.value?.boatClass !== undefined);
+
 onMounted(async () => {
-  await loadRaceClassTypes();
   await loadHandicapTypes();
+  await loadBoatClasses();
   await loadSeries();
   void fetchRaceClass();
 });
-
-if (raceClass.value) {
-  Object.assign(form, {
-    name: raceClass.value.name,
-    minHandicap: raceClass.value.minHandicap ?? '',
-    maxHandicap: raceClass.value.maxHandicap ?? '',
-    handicapTypeId: raceClass.value.handicapType.id ?? '',
-    raceClassTypeId: raceClass.value.raceClassType.id,
-  });
-  original.value = JSON.stringify(form);
-}
 
 const hasChanges = computed(() => JSON.stringify(form) !== original.value);
 
@@ -80,7 +71,7 @@ function cancelEdit() {
     minHandicap: raceClass.value.minHandicap ?? '',
     maxHandicap: raceClass.value.maxHandicap ?? '',
     handicapTypeId: raceClass.value.handicapType.id ?? '',
-    raceClassTypeId: raceClass.value.raceClassType.id,
+    boatClassId: raceClass.value.boatClass?.id ?? '',
   });
   isEditing.value = false;
 }
@@ -94,24 +85,35 @@ async function saveChanges() {
 
   try {
     const selectedHandicapType = handicapTypes.value.find((t) => t.id === Number(form.handicapTypeId));
-    const selectedRaceClassType = raceClassTypes.value.find((t) => t.id === Number(form.raceClassTypeId));
+    const selectedBoatClass = boatClasses.value.find((t) => t.id === Number(form.boatClassId));
 
     await axios.post('/race-class/update', {
       id: raceClass.value.id,
       name: form.name,
-      minHandicap: form.minHandicap === '' ? null : Number(form.minHandicap),
-      maxHandicap: form.maxHandicap === '' ? null : Number(form.maxHandicap),
+      minHandicap: isMonotype.value
+        ? raceClass.value.minHandicap
+        : form.minHandicap === ''
+          ? null
+          : Number(form.minHandicap),
+      maxHandicap: isMonotype.value
+        ? raceClass.value.maxHandicap
+        : form.maxHandicap === ''
+          ? null
+          : Number(form.maxHandicap),
       // send objects to match create payload
-      handicapType: selectedHandicapType ?? null,
-      raceClassType: selectedRaceClassType ?? null,
+      handicapType: isMonotype.value ? raceClass.value.handicapType : selectedHandicapType ?? null,
+      raceClassType: raceClass.value.raceClassType,
+      boatClass: isMonotype.value ? selectedBoatClass ?? raceClass.value.boatClass : null,
     });
 
     // optimistically update local model
-    if (selectedHandicapType) {
+    if (!isMonotype.value && selectedHandicapType) {
       raceClass.value!.handicapType = selectedHandicapType;
     }
-    if (selectedRaceClassType) {
-      raceClass.value!.raceClassType = selectedRaceClassType;
+    if (isMonotype.value) {
+      raceClass.value!.boatClass = selectedBoatClass ?? raceClass.value!.boatClass;
+    } else {
+      raceClass.value!.boatClass = null;
     }
 
     // refresh from backend to ensure canonical state
@@ -147,6 +149,7 @@ async function fetchRaceClass() {
       maxHandicap: data.maxHandicap,
       handicapType: data.handicapType,
       raceClassType: data.raceClassType,
+      boatClass: data.boatClass,
     };
 
     raceClass.value = loadedRaceClass;
@@ -156,6 +159,7 @@ async function fetchRaceClass() {
       maxHandicap: loadedRaceClass.maxHandicap ?? '',
       handicapTypeId: loadedRaceClass.handicapType.id ?? '',
       raceClassTypeId: loadedRaceClass.raceClassType.id,
+      boatClassId: loadedRaceClass.boatClass?.id ?? '',
     });
     original.value = JSON.stringify(form);
 
@@ -178,12 +182,17 @@ watch(classId, () => {
   void fetchRaceClass();
 });
 
-async function loadRaceClassTypes() {
-  raceClassTypes.value = await getRaceClassTypes();
-}
-
 async function loadHandicapTypes() {
   handicapTypes.value = await getHandicapTypes();
+}
+
+async function loadBoatClasses() {
+  try {
+    const response = await axios.get<BoatClass[]>('/boat-class');
+    boatClasses.value = response.data;
+  } catch {
+    boatClasses.value = [];
+  }
 }
 
 async function loadSeries() {
@@ -215,9 +224,17 @@ async function loadSeries() {
           <tr>
             <th>Race class type</th>
             <td>
-              <span v-if="!isEditing">{{ raceClass.raceClassType.name }}</span>
-              <select v-else v-model.number="form.raceClassTypeId" class="form-control">
-                <option v-for="item in raceClassTypes" :key="item.id" :value="item.id">
+              <span>{{ raceClass.raceClassType.name }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th>Boat Class</th>
+            <td>
+              <span v-if="!isEditing || !isMonotype">
+                {{ raceClass.boatClass?.name ?? '-' }}
+              </span>
+              <select v-else v-model.number="form.boatClassId" class="form-control">
+                <option v-for="item in boatClasses" :key="item.id" :value="item.id">
                   {{ item.name }}
                 </option>
               </select>
@@ -226,42 +243,46 @@ async function loadSeries() {
           <tr>
             <th>Min handicap</th>
             <td>
-              <input
-                v-model="form.minHandicap"
-                :disabled="Number(form.raceClassTypeId) === 1"
-                :readonly="!isEditing"
-                class="form-control"
-                type="text"
-              />
+              <template v-if="!isMonotype">
+                <input
+                  v-if="isEditing"
+                  v-model="form.minHandicap"
+                  class="form-control"
+                  type="text"
+                />
+                <span v-else>{{ raceClass.minHandicap }}</span>
+              </template>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
             <th>Max handicap</th>
             <td>
-              <input
-                v-model="form.maxHandicap"
-                :disabled="Number(form.raceClassTypeId) === 1"
-                :readonly="!isEditing"
-                class="form-control"
-                type="text"
-              />
+              <template v-if="!isMonotype">
+                <input
+                  v-if="isEditing"
+                  v-model="form.maxHandicap"
+                  class="form-control"
+                  type="text"
+                />
+                <span v-else>{{ raceClass.maxHandicap }}</span>
+              </template>
+              <span v-else>-</span>
             </td>
           </tr>
           <tr>
             <th>Handicap type</th>
             <td>
-              <span v-if="!isEditing">{{ raceClass.handicapType.name }}</span>
-              <select
-                v-else
-                v-model.number="form.handicapTypeId"
-                :disabled="Number(form.raceClassTypeId) === 1"
-                class="form-control"
-              >
-                <option :value="''">-</option>
-                <option v-for="item in handicapTypes" :key="item.id" :value="item.id">
-                  {{ item.name }}
-                </option>
-              </select>
+              <template v-if="!isMonotype">
+                <span v-if="!isEditing">{{ raceClass.handicapType.name }}</span>
+                <select v-else v-model.number="form.handicapTypeId" class="form-control">
+                  <option :value="''">-</option>
+                  <option v-for="item in handicapTypes" :key="item.id" :value="item.id">
+                    {{ item.name }}
+                  </option>
+                </select>
+              </template>
+              <span v-else>-</span>
             </td>
           </tr>
         </tbody>

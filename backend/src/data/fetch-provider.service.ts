@@ -50,6 +50,7 @@ export class FetchProvider {
             relations: {
                 raceClassType: true,
                 handicapType: true,
+                boatClass: true,
             },
         });
         return raceClass || [];
@@ -70,7 +71,7 @@ export class FetchProvider {
     public async getRaceClassById(id: number): Promise<RaceClass | null> {
         return await AppDataSource.manager.findOne(RaceClass, {
             where: {id},
-            relations: ["raceClassType", "handicapType"],
+            relations: ["raceClassType", "handicapType", "boatClass"],
         });
     }
 
