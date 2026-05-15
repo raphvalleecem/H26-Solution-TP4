@@ -1,13 +1,20 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { findBoatById } from '@/models/boats.ts';
+import { getBoats, type Boat } from '@/models/boats.ts';
 
 const route = useRoute();
 const router = useRouter();
 
 const boatId = computed(() => Number.parseInt(String(route.params.id), 10));
-const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)));
+const boats = ref<Boat[]>([]);
+const boat = computed(() =>
+  Number.isNaN(boatId.value) ? undefined : boats.value.find((row) => row.id === boatId.value),
+);
+
+onMounted(async () => {
+  boats.value = await getBoats();
+});
 
 function confirmDelete() {
   router.push({ name: 'boat' });

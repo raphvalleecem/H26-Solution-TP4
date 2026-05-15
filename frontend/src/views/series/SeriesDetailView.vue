@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { boats } from '@/models/boats.ts';
-import { raceClasses } from '@/models/raceClass.ts';
-import { races } from '@/models/races.ts';
+import { getBoats, type Boat } from '@/models/boats.ts';
+import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
+import { getRaces, type Race } from '@/models/races.ts';
 import { seriesEntries } from '@/models/seriesEntries.ts';
 import { seriesOutcomes } from '@/models/seriesOutcomes.ts';
-import { findSeriesById } from '@/models/series.ts';
+import { getSeries, type Series } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -22,13 +22,17 @@ type SeriesForm = {
 
 const route = useRoute();
 const seriesId = computed(() => Number.parseInt(String(route.params.id), 10));
+const seriesRows = ref<Series[]>([]);
 const seriesItem = computed(() =>
-  Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
+  Number.isNaN(seriesId.value) ? undefined : seriesRows.value.find((row) => row.id === seriesId.value),
 );
 
 const isEditing = ref(false);
 const selectedBoatId = ref<number | null>(null);
 const addedBoatIds = ref<number[]>([]);
+const boats = ref<Boat[]>([]);
+const raceClasses = ref<RaceClass[]>([]);
+const races = ref<Race[]>([]);
 
 const form = reactive<SeriesForm>({
   name: '',
@@ -39,17 +43,50 @@ const form = reactive<SeriesForm>({
 });
 const original = ref<SeriesForm | null>(null);
 
-if (seriesItem.value) {
-  const seed: SeriesForm = {
-    name: seriesItem.value.name,
-    nbRaces: seriesItem.value.nbRaces,
-    nbRacesToCount: seriesItem.value.nbRacesToCount,
-    raceClassId: seriesItem.value.raceClassId,
-    isCompleted: seriesItem.value.isCompleted,
-  };
-  original.value = seed;
-  Object.assign(form, seed);
+function getSeriesRaceClassId(series: Series): number {
+  const withId = series as Series & { raceClassId?: number };
+  return withId.raceClassId ?? series.raceClass?.id ?? 0;
 }
+
+function getRaceSeriesId(race: Race): number | undefined {
+  const withId = race as Race & { seriesId?: number | null };
+  if (typeof withId.seriesId === 'number') {
+    return withId.seriesId;
+  }
+  return race.series?.id;
+}
+
+watch(
+  seriesItem,
+  (value) => {
+    if (!value) {
+      return;
+    }
+    const seed: SeriesForm = {
+      name: value.name,
+      nbRaces: value.nbRaces,
+      nbRacesToCount: value.nbRacesToCount,
+      raceClassId: getSeriesRaceClassId(value),
+      isCompleted: value.isCompleted,
+    };
+    original.value = seed;
+    Object.assign(form, seed);
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  const [boatsData, raceClassesData, racesData, seriesData] = await Promise.all([
+    getBoats(),
+    getRaceClasses(),
+    getRaces(),
+    getSeries(),
+  ]);
+  boats.value = boatsData;
+  raceClasses.value = raceClassesData;
+  races.value = racesData;
+  seriesRows.value = seriesData;
+});
 
 const hasChanges = computed(() => {
   if (!original.value) {
@@ -59,18 +96,18 @@ const hasChanges = computed(() => {
 });
 
 const raceClassName = computed(() => {
-  return raceClasses.find((item) => item.id === form.raceClassId)?.name ?? '-';
+  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-';
 });
 
 const racesInSeries = computed(() => {
   if (!seriesItem.value) {
     return [];
   }
-  return races.filter((race) => race.seriesId === seriesItem.value!.id);
+  return races.value.filter((race) => getRaceSeriesId(race) === seriesItem.value!.id);
 });
 
 type EntryDisplayRow = {
-  boat: (typeof boats)[number];
+  boat: Boat;
   outcome: (typeof seriesOutcomes)[number] | undefined;
   source: 'saved' | 'temp';
 };
@@ -83,7 +120,7 @@ const boatRows = computed<EntryDisplayRow[]>(() => {
   const base = seriesEntries
     .filter((entry) => entry.seriesId === seriesItem.value!.id)
     .map((entry) => ({
-      boat: boats.find((boat) => boat.id === entry.boatId),
+      boat: boats.value.find((boat) => boat.id === entry.boatId),
       outcome: seriesOutcomes.find((outcome) => outcome.seriesEntryId === entry.id),
       source: 'saved' as const,
     }))
@@ -91,15 +128,15 @@ const boatRows = computed<EntryDisplayRow[]>(() => {
       (
         row,
       ): row is {
-        boat: (typeof boats)[number];
+        boat: Boat;
         outcome: (typeof seriesOutcomes)[number] | undefined;
         source: 'saved';
       } => Boolean(row.boat),
     );
 
   const temp = addedBoatIds.value
-    .map((boatId) => boats.find((boat) => boat.id === boatId))
-    .filter((boat): boat is (typeof boats)[number] => Boolean(boat))
+    .map((boatId) => boats.value.find((boat) => boat.id === boatId))
+    .filter((boat): boat is Boat => Boolean(boat))
     .map((boat) => ({ boat, outcome: undefined, source: 'temp' as const }));
 
   return [...base, ...temp];
@@ -107,7 +144,7 @@ const boatRows = computed<EntryDisplayRow[]>(() => {
 
 const selectableBoats = computed(() => {
   const already = new Set(boatRows.value.map((row) => row.boat.id));
-  return boats.filter((boat) => !already.has(boat.id));
+  return boats.value.filter((boat) => !already.has(boat.id));
 });
 
 function startEdit() {
@@ -243,7 +280,7 @@ function addEntry() {
             <td>
               <RouterLink :to="`/race/${race.id}`">{{ race.name }}</RouterLink>
             </td>
-            <td>{{ race.date }}</td>
+            <td>{{ race.startDate }}</td>
             <td>{{ race.startTime }}</td>
           </tr>
         </tbody>

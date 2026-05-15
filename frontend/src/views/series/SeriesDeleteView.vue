@@ -1,15 +1,20 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { findSeriesById } from '@/models/series.ts';
+import { getSeries, type Series } from '@/models/series.ts';
 
 const route = useRoute();
 const router = useRouter();
 
 const seriesId = computed(() => Number.parseInt(String(route.params.id), 10));
+const seriesRows = ref<Series[]>([]);
 const seriesItem = computed(() =>
-  Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
+  Number.isNaN(seriesId.value) ? undefined : seriesRows.value.find((row) => row.id === seriesId.value),
 );
+
+onMounted(async () => {
+  seriesRows.value = await getSeries();
+});
 
 function confirmDelete() {
   router.push({ name: 'series' });

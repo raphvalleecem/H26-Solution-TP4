@@ -4,7 +4,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-bs4'
-import { raceEntries } from '@/models/raceEntries.ts'
+import { getRaceEntries, type RaceEntry } from '@/models/raceEntries.ts'
 import { getRaces, type Race } from '@/models/races.ts'
 import { seriesEntries } from '@/models/seriesEntries.ts'
 import { getSeries, type Series } from '@/models/series.ts'
@@ -39,6 +39,7 @@ const boatId = computed(() => Number.parseInt(String(route.params.id), 10))
 const boatClasses = ref<BoatClassOption[]>([])
 const races = ref<Race[]>([])
 const seriesRows = ref<Series[]>([])
+const raceEntries = ref<RaceEntry[]>([])
 const boat = ref<BoatDetail | null>(null)
 
 const isLoading = ref(true)
@@ -59,7 +60,7 @@ const raceList = computed(() => {
   }
 
   const currentBoatId = boat.value.id
-  return raceEntries
+  return raceEntries.value
     .filter((entry) => entry.boatId === currentBoatId)
     .map((entry) => races.value.find((raceItem) => raceItem.id === entry.raceId))
     .filter((raceItem): raceItem is Race => Boolean(raceItem))
@@ -81,6 +82,7 @@ onMounted(async () => {
   await loadBoatClasses()
   await loadRaces()
   await loadSeries()
+  await loadRaceEntries()
   void fetchBoat()
 })
 
@@ -193,6 +195,9 @@ async function loadSeries() {
   seriesRows.value = await getSeries()
 }
 
+async function loadRaceEntries() {
+  raceEntries.value = await getRaceEntries()
+}
 
 watch(boatId, () => {
   void fetchBoat()

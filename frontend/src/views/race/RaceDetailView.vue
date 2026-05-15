@@ -3,8 +3,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
-import { type Boat, boats } from '@/models/boats.ts';
-import { raceEntries } from '@/models/raceEntries.ts';
+import { getBoats, type Boat } from '@/models/boats.ts';
+import { addRaceEntry, getRaceEntries, type RaceEntry } from '@/models/raceEntries.ts';
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
@@ -27,16 +27,18 @@ const race = ref<Race | null>(null);
 
 const raceClasses = ref<RaceClass[]>([]);
 const seriesRows = ref<Series[]>([]);
+const boats = ref<Boat[]>([]);
+const raceEntries = ref<RaceEntry[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses();
   seriesRows.value = await getSeries();
+  await Promise.all([loadBoats(), loadRaceEntries()]);
 });
 
 const isEditing = ref(false);
-const addedBoatIds = ref<number[]>([]);
 const selectedBoatId = ref<number | null>(null);
 
 const form = reactive<RaceForm>({
@@ -62,6 +64,14 @@ function relationId(value: unknown): number {
   }
 
   return 0;
+}
+
+async function loadBoats() {
+  boats.value = await getBoats();
+}
+
+async function loadRaceEntries() {
+  raceEntries.value = await getRaceEntries();
 }
 
 async function loadRace() {
@@ -147,7 +157,7 @@ type EntryDisplayRow = {
   boatId: number;
   boat: Boat;
   outcome: RaceOutcome | undefined;
-  source: 'saved' | 'temp';
+  source: 'saved';
 };
 
 type LocalOutcomeDraft = {
@@ -209,13 +219,13 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
     return [];
   }
 
-  const base = raceEntries
+  return raceEntries.value
     .filter((entry) => entry.raceId === race.value!.id && !removedEntryIds.value.includes(entry.id))
     .map((entry) => ({
       rowKey: `saved-${entry.id}`,
       entryId: entry.id,
       boatId: entry.boatId,
-      boat: boats.find((row) => row.id === entry.boatId),
+      boat: boats.value.find((row) => row.id === entry.boatId),
       outcome: raceOutcomes.find((row) => row.raceEntryId === entry.id),
       source: 'saved' as const,
     }))
@@ -235,24 +245,11 @@ const allBoatRows = computed<EntryDisplayRow[]>(() => {
       ...row,
       outcome: mergeOutcome(row.outcome, row.rowKey, row.entryId),
     }));
-
-  const added = addedBoatIds.value
-    .map((boatId) => boats.find((row) => row.id === boatId))
-    .filter((boat): boat is (typeof boats)[number] => Boolean(boat))
-    .map((boat) => ({
-      rowKey: `temp-${boat.id}`,
-      boatId: boat.id,
-      boat,
-      outcome: mergeOutcome(undefined, `temp-${boat.id}`),
-      source: 'temp' as const,
-    }));
-
-  return [...base, ...added];
 });
 
 const selectableBoats = computed(() => {
   const selected = new Set(allBoatRows.value.map((row) => row.boat.id));
-  return boats.filter((boat) => !selected.has(boat.id));
+  return boats.value.filter((boat) => !selected.has(boat.id));
 });
 
 function startEdit() {
@@ -274,13 +271,20 @@ function saveChanges() {
   isEditing.value = false;
 }
 
-function addEntry() {
-  if (!selectedBoatId.value) {
+async function addEntry() {
+  if (!selectedBoatId.value || !race.value) {
     return;
   }
-  if (!addedBoatIds.value.includes(selectedBoatId.value)) {
-    addedBoatIds.value.push(selectedBoatId.value);
+
+  const created = await addRaceEntry({
+    boatId: selectedBoatId.value,
+    raceId: race.value.id,
+  });
+
+  if (created) {
+    raceEntries.value = [...raceEntries.value, created];
   }
+
   selectedBoatId.value = null;
 }
 
@@ -330,16 +334,8 @@ function saveEntryModal() {
 }
 
 function removeEntry(row: EntryDisplayRow) {
-  if (
-    row.source === 'saved' &&
-    row.entryId != null &&
-    !removedEntryIds.value.includes(row.entryId)
-  ) {
+  if (row.entryId != null && !removedEntryIds.value.includes(row.entryId)) {
     removedEntryIds.value.push(row.entryId);
-  }
-
-  if (row.source === 'temp') {
-    addedBoatIds.value = addedBoatIds.value.filter((boatId) => boatId !== row.boatId);
   }
 
   delete editedOutcomes.value[row.rowKey];
@@ -603,3 +599,5 @@ function removeEntry(row: EntryDisplayRow) {
     </div>
   </section>
 </template>
+
+

@@ -124,6 +124,14 @@ router.post('/race/delete', upload.none(), async (req: Request, res: Response) =
 //#endregion
 
 //#region RaceEntry
+router.get('/race-entry', async (req: Request, res: Response) => {
+    try {
+        const raceEntries = await getProvider().getRaceEntries();
+        res.json(raceEntries);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
 router.post('/race-entry/create', upload.none(), async (req: Request, res: Response) => {
     try {
         const {boatId, raceId} = req.body;

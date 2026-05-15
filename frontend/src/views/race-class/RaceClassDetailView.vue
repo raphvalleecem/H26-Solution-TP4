@@ -53,11 +53,19 @@ if (raceClass.value) {
 
 const hasChanges = computed(() => JSON.stringify(form) !== original.value);
 
+function getRaceClassId(race: Race): number | undefined {
+  const withId = race as Race & { raceClassId?: number };
+  if (typeof withId.raceClassId === 'number') {
+    return withId.raceClassId;
+  }
+  return race.raceClass?.id;
+}
+
 const relatedRaces = computed(() => {
   if (!raceClass.value) {
     return [];
   }
-  return races.value.filter((race) => race.raceClass === raceClass.value!.id);
+  return races.value.filter((race) => getRaceClassId(race) === raceClass.value!.id);
 });
 
 const relatedSeries = computed(() => {
@@ -148,7 +156,7 @@ async function fetchRaceClass() {
       races.value = await getRaces();
     } catch {}
     try {
-      await getSeries();
+      series.value = await getSeries();
     } catch {}
   } catch {
     raceClass.value = null;
