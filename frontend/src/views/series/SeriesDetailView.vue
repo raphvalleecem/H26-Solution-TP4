@@ -8,7 +8,7 @@ import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getRaces, type Race } from '@/models/races.ts';
 import { seriesEntries } from '@/models/seriesEntries.ts';
 import { seriesOutcomes } from '@/models/seriesOutcomes.ts';
-import { findSeriesById, getSeries } from '@/models/series.ts';
+import { getSeriesById, type Series } from '@/models/series.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -22,9 +22,7 @@ type SeriesForm = {
 
 const route = useRoute();
 const seriesId = computed(() => Number.parseInt(String(route.params.id), 10));
-const seriesItem = computed(() =>
-  Number.isNaN(seriesId.value) ? undefined : findSeriesById(seriesId.value),
-);
+const seriesItem = ref<Series | undefined>();
 
 const raceClasses = ref<RaceClass[]>([]);
 const racesList = ref<Race[]>([]);
@@ -42,10 +40,21 @@ const form = reactive<SeriesForm>({
 const original = ref<SeriesForm | null>(null);
 
 onMounted(async () => {
-  await getSeries();
   raceClasses.value = await getRaceClasses();
   racesList.value = await getRaces();
 });
+
+async function loadSeriesItem() {
+  seriesItem.value = Number.isNaN(seriesId.value) ? undefined : await getSeriesById(seriesId.value);
+}
+
+watch(
+  () => seriesId.value,
+  async () => {
+    await loadSeriesItem();
+  },
+  { immediate: true },
+);
 
 watch(
   () => seriesItem.value,
@@ -72,14 +81,14 @@ const hasChanges = computed(() => {
 });
 
 const raceClassName = computed(() => {
-  return raceClasses.find((item) => item.id === form.raceClassId)?.name ?? '-';
+  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-';
 });
 
 const racesInSeries = computed(() => {
   if (!seriesItem.value) {
     return [];
   }
-  return races.filter((race) => race.seriesId === seriesItem.value!.id);
+  return racesList.value.filter((race) => race.seriesId === seriesItem.value!.id);
 });
 
 type EntryDisplayRow = {

@@ -29,7 +29,7 @@ const props = withDefaults(
       startTime: '',
       track: '',
       raceClassId: 1,
-      seriesId: 1,
+      seriesId: 0,
       isCompleted: false,
     }),
     isSubmitting: false,
@@ -56,11 +56,11 @@ function onSubmit() {
        No race classes available. Please create a race class first.
      </div>
 
-     <div v-if="seriesRows.length === 0" class="alert alert-warning">
-       No series available. Please create a series first.
+      <div v-if="seriesRows.length === 0" class="alert alert-info">
+        No series available. You can still create the race without linking it to a series.
      </div>
 
-     <form v-if="raceClasses.length > 0 && seriesRows.length > 0" @submit.prevent="onSubmit">
+      <form v-if="raceClasses.length > 0" @submit.prevent="onSubmit">
        <div class="form-group">
          <label for="race-name">Name</label>
          <input id="race-name" v-model.trim="form.name" class="form-control" required type="text" />
@@ -104,7 +104,8 @@ function onSubmit() {
 
        <div class="form-group">
          <label for="series-id">Series</label>
-         <select id="series-id" v-model.number="form.seriesId" class="form-control" required>
+          <select id="series-id" v-model.number="form.seriesId" class="form-control">
+            <option :value="0">No series</option>
            <option v-for="item in seriesRows" :key="item.id" :value="item.id">
              {{ item.name }}
            </option>

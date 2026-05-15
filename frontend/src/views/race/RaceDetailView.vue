@@ -8,7 +8,7 @@ import { raceEntries } from '@/models/raceEntries.ts';
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
-import { getRaces, findRaceById, type Race } from '@/models/races.ts';
+import { getRaceById, type Race } from '@/models/races.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -24,16 +24,27 @@ type RaceForm = {
 
 const route = useRoute();
 const raceId = computed(() => Number.parseInt(String(route.params.id), 10));
-const race = computed(() => (Number.isNaN(raceId.value) ? undefined : findRaceById(raceId.value)));
+const race = ref<Race | undefined>();
 
 const raceClasses = ref<RaceClass[]>([]);
 const seriesRows = ref<Series[]>([]);
 
 onMounted(async () => {
-  await getRaces();
   raceClasses.value = await getRaceClasses();
   seriesRows.value = await getSeries();
 });
+
+async function loadRaceItem() {
+  race.value = Number.isNaN(raceId.value) ? undefined : await getRaceById(raceId.value);
+}
+
+watch(
+  () => raceId.value,
+  async () => {
+    await loadRaceItem();
+  },
+  { immediate: true },
+);
 
 const isEditing = ref(false);
 const addedBoatIds = ref<number[]>([]);
@@ -352,10 +363,12 @@ function removeEntry(row: EntryDisplayRow) {
           <tr>
             <th>Series</th>
             <td>
-              <RouterLink v-if="!isEditing" :to="`/series/${form.seriesId}`">{{
-                seriesName
-              }}</RouterLink>
+              <RouterLink v-if="!isEditing && form.seriesId > 0" :to="`/series/${form.seriesId}`">
+                {{ seriesName }}
+              </RouterLink>
+              <span v-else-if="!isEditing">{{ seriesName }}</span>
               <select v-else v-model.number="form.seriesId" class="form-control">
+                <option :value="0">No series</option>
                 <option v-for="item in seriesRows" :key="item.id" :value="item.id">
                   {{ item.name }}
                 </option>

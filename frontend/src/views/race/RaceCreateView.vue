@@ -36,7 +36,8 @@ async function createRace(payload: RaceFormSubmitPayload) {
      const startDateTime = new Date(`${payload.date}T${hours}:${minutes}:00`);
 
      if (isNaN(startDateTime.getTime())) {
-       throw new Error('Invalid date or time format');
+        errorMessage.value = 'Unable to create race: Invalid date or time format';
+        return;
      }
 
      const createPayload: {
@@ -45,7 +46,7 @@ async function createRace(payload: RaceFormSubmitPayload) {
        startTime: string;
        course: string;
        raceClassId: number;
-       seriesId: number;
+        seriesId?: number;
        isCompleted: boolean;
      } = {
        name: payload.name,
@@ -53,20 +54,15 @@ async function createRace(payload: RaceFormSubmitPayload) {
        startTime: startDateTime.toISOString(),
        course: payload.track,
        raceClassId: payload.raceClassId,
-       seriesId: payload.seriesId,
        isCompleted: false,
      };
 
+      if (payload.seriesId > 0) {
+        createPayload.seriesId = payload.seriesId;
+      }
+
      console.log('Creating race with payload:', createPayload);
-     await (addRace as unknown as (formData: {
-       name: string;
-       date: string;
-       startTime: string;
-       course: string;
-       raceClassId: number;
-       seriesId: number;
-       isCompleted: boolean;
-     }) => Promise<void>)(createPayload);
+      await addRace(createPayload);
      console.log('Race created successfully');
      await router.push({ name: 'race' });
    } catch (error) {
