@@ -10,17 +10,74 @@ const router = useRouter();
 const raceClasses = ref<RaceClass[]>([]);
 const seriesRows = ref<Series[]>([]);
 const raceClassesLoaded = ref(false);
+const isSubmitting = ref(false);
+  raceClassesLoaded.value = true;
+const errorMessage = ref('');
+
+type RaceFormSubmitPayload = {
+  name: string;
+  date: string;
+  startTime: string;
+  track: string;
+  raceClassId: number;
+  seriesId: number;
+};
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses();
-  raceClassesLoaded.value = true;
   seriesRows.value = await getSeries();
 });
 
-async function createRace(payload: RaceCreatePayload) {
-  await addRace(payload);
-  await router.push({ name: 'race' });
-}
+async function createRace(payload: RaceFormSubmitPayload) {
+   isSubmitting.value = true;
+   errorMessage.value = '';
+
+   try {
+     // Combine date and time into a single ISO datetime string
+     const [hours, minutes] = payload.startTime.split(':');
+     const startDateTime = new Date(`${payload.date}T${hours}:${minutes}:00`);
+
+     if (isNaN(startDateTime.getTime())) {
+        errorMessage.value = 'Unable to create race: Invalid date or time format';
+        return;
+     }
+
+     const createPayload: {
+       name: string;
+       date: string;
+       startTime: string;
+       course: string;
+       raceClassId: number;
+        seriesId?: number;
+       isCompleted: boolean;
+     } = {
+       name: payload.name,
+       date: payload.date,
+       startTime: startDateTime.toISOString(),
+       course: payload.track,
+       raceClassId: payload.raceClassId,
+       isCompleted: false,
+     };
+
+      if (payload.seriesId > 0) {
+        createPayload.seriesId = payload.seriesId;
+      }
+
+     console.log('Creating race with payload:', createPayload);
+      await addRace(createPayload);
+     console.log('Race created successfully');
+     await router.push({ name: 'race' });
+   } catch (error) {
+     console.error('Error creating race:', error);
+     if (error instanceof Error) {
+       errorMessage.value = `Unable to create race: ${error.message}`;
+     } else {
+       errorMessage.value = 'Unable to create race. Please try again.';
+     }
+   } finally {
+     isSubmitting.value = false;
+   }
+ }
 
 function cancel() {
   router.push({ name: 'race' });
@@ -41,9 +98,14 @@ function cancel() {
     v-else
     :race-classes="raceClasses"
     :series-rows="seriesRows"
+    :is-submitting="isSubmitting"
     submit-label="Create"
     title="Create race"
     @cancel="cancel"
     @submit="createRace"
   />
+
+  <div v-if="errorMessage" class="alert alert-danger mt-3">
+    {{ errorMessage }}
+  </div>
 </template>

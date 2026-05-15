@@ -29,7 +29,7 @@ type BoatDetail = {
   name: string
   sailNumber: number
   helmName: string
-  boatClassId: number
+  boatClassId: number | null
   boatClassName: string | null
 }
 
@@ -51,7 +51,20 @@ const original = ref('')
 const hasChanges = computed(() => JSON.stringify(form) !== original.value)
 
 const boatClassName = computed(() => {
-  return boat.value?.boatClassName ?? boatClasses.value.find((item) => item.id === Number(form.boatClassId))?.name ?? '-'
+  if (!boat.value) return '-'
+
+  // prefer an explicit name on the loaded boat
+  if (boat.value.boatClassName) return boat.value.boatClassName
+
+  const idFromForm = Number(form.boatClassId)
+  const idFromBoat = boat.value.boatClassId
+  const idToFind = Number.isNaN(idFromForm) ? idFromBoat : idFromForm
+
+  if (idToFind === null || idToFind === undefined || Number.isNaN(Number(idToFind))) {
+    return '-'
+  }
+
+  return boatClasses.value.find((item) => item.id === Number(idToFind))?.name ?? `#${idToFind}`
 })
 
 const raceList = computed(() => {
@@ -149,20 +162,26 @@ async function fetchBoat() {
     }
 
     const loadedBoat = data
+
+    // support API returning either boatClassId or embedded boatClass object
+    const embeddedClass = (loadedBoat as any).boatClass
+    const classId = loadedBoat.boatClassId ?? (embeddedClass ? Number(embeddedClass.id) : null)
+    const className = embeddedClass && typeof embeddedClass.name === 'string' ? embeddedClass.name : null
+
     boat.value = {
       id: loadedBoat.id,
       name: loadedBoat.name,
       sailNumber: loadedBoat.sailNumber,
       helmName: loadedBoat.helmName,
-      boatClassId: loadedBoat.boatClassId,
-      boatClassName: null,
+      boatClassId: classId,
+      boatClassName: className,
     }
 
     const seed: BoatForm = {
       name: loadedBoat.name,
       sailNumber: loadedBoat.sailNumber,
       helmName: loadedBoat.helmName,
-      boatClassId: loadedBoat.boatClassId,
+      boatClassId: classId ?? '',
     }
 
     Object.assign(form, seed)

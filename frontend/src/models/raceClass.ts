@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { HandicapType } from '@/models/handicapTypes.ts';
 import type { RaceClassType } from '@/models/raceClassTypes.ts';
+import type { BoatClass } from '@/models/boatClasses.ts';
 
 export type RaceClass = {
   id: number;
@@ -9,6 +10,7 @@ export type RaceClass = {
   maxHandicap: number;
   handicapType: HandicapType;
   raceClassType: RaceClassType;
+  boatClass: BoatClass | null;
 };
 
 let raceClassesCache: RaceClass[] = [];

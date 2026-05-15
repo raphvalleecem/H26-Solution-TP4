@@ -29,11 +29,21 @@ function handleTableClick(event: MouseEvent) {
     event.preventDefault();
     const id = target.getAttribute('data-id');
     if (id) router.push(`/series/${id}`);
+  } else if (target.classList.contains('series-id-link')) {
+    event.preventDefault();
+    const id = target.getAttribute('data-id');
+    if (id) router.push(`/series/${id}`);
   }
 }
 
 const columns = [
-  { data: 'id', title: '#' },
+  {
+    data: 'id',
+    title: '#',
+    render: (id: number) => {
+      return `<a href="/series/${id}" class="series-id-link" data-id="${id}">${id}</a>`;
+    },
+  },
   { data: 'name', title: 'Name' },
   { data: 'nbRaces', title: 'Nb Races' },
   { data: 'nbRacesToCount', title: 'Nb Races To Count' },

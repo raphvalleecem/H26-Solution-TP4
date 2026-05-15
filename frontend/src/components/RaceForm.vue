@@ -15,13 +15,28 @@ const defaultInitialValue: RaceFormPayload = {
   seriesId: null,
 };
 
-const props = defineProps<{
-  title: string;
-  submitLabel: string;
-  initialValue?: RaceFormPayload;
-  raceClasses: RaceClass[];
-  seriesRows: Series[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    submitLabel: string;
+    initialValue?: RaceFormPayload;
+    raceClasses: RaceClass[];
+    seriesRows: Series[];
+    isSubmitting?: boolean;
+  }>(),
+  {
+    initialValue: () => ({
+      name: '',
+      date: '',
+      startTime: '',
+      track: '',
+      raceClassId: 1,
+      seriesId: 0,
+      isCompleted: false,
+    }),
+    isSubmitting: false,
+  },
+);
 
 const emit = defineEmits<{
   submit: [value: RaceFormPayload];
@@ -48,14 +63,22 @@ function onSubmit() {
 </script>
 
 <template>
-  <section class="container mt-3">
-    <h1 class="mb-3">{{ title }}</h1>
+   <section class="container mt-3">
+     <h1 class="mb-3">{{ title }}</h1>
 
-    <form @submit.prevent="onSubmit">
-      <div class="form-group">
-        <label for="race-name">Name</label>
-        <input id="race-name" v-model.trim="form.name" class="form-control" required type="text" />
-      </div>
+     <div v-if="raceClasses.length === 0" class="alert alert-warning">
+       No race classes available. Please create a race class first.
+     </div>
+
+      <div v-if="seriesRows.length === 0" class="alert alert-info">
+        No series available. You can still create the race without linking it to a series.
+     </div>
+
+      <form v-if="raceClasses.length > 0" @submit.prevent="onSubmit">
+       <div class="form-group">
+         <label for="race-name">Name</label>
+         <input id="race-name" v-model.trim="form.name" class="form-control" required type="text" />
+       </div>
 
       <div class="form-group">
         <label for="race-date">Date</label>
@@ -70,36 +93,36 @@ function onSubmit() {
         />
       </div>
 
-      <div class="form-group">
-        <label for="race-start-time">Start time</label>
-        <input
-          id="race-start-time"
-          v-model="form.startTime"
-          class="form-control"
-          required
-          type="time"
-        />
-      </div>
+       <div class="form-group">
+         <label for="race-start-time">Start time</label>
+         <input
+           id="race-start-time"
+           v-model="form.startTime"
+           class="form-control"
+           required
+           type="time"
+         />
+       </div>
 
-      <div class="form-group">
-        <label for="race-track">Track</label>
-        <input
-          id="race-track"
-          v-model.trim="form.track"
-          class="form-control"
-          required
-          type="text"
-        />
-      </div>
+       <div class="form-group">
+         <label for="race-track">Track</label>
+         <input
+           id="race-track"
+           v-model.trim="form.track"
+           class="form-control"
+           required
+           type="text"
+         />
+       </div>
 
-      <div class="form-group">
-        <label for="race-class-id">Race class</label>
-        <select id="race-class-id" v-model.number="form.raceClassId" class="form-control" required>
-          <option v-for="item in raceClasses" :key="item.id" :value="item.id">
-            {{ item.name }}
-          </option>
-        </select>
-      </div>
+       <div class="form-group">
+         <label for="race-class-id">Race class</label>
+         <select id="race-class-id" v-model.number="form.raceClassId" class="form-control" required>
+           <option v-for="item in raceClasses" :key="item.id" :value="item.id">
+             {{ item.name }}
+           </option>
+         </select>
+       </div>
 
       <div class="form-group">
         <label for="series-id">Series</label>
@@ -111,12 +134,14 @@ function onSubmit() {
         </select>
       </div>
 
-      <div class="d-flex">
-        <button class="btn btn-primary mr-2" type="submit">{{ submitLabel }}</button>
-        <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </section>
-</template>
+       <div class="d-flex">
+         <button :disabled="props.isSubmitting" class="btn btn-primary mr-2" type="submit">
+           {{ props.isSubmitting ? 'Creating...' : submitLabel }}
+         </button>
+         <button class="btn btn-outline-secondary" type="button" @click="emit('cancel')">
+           Cancel
+         </button>
+       </div>
+     </form>
+   </section>
+ </template>

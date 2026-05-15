@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import axios from 'axios';
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { RouterLink, useRouter } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import type { BoatClass } from '@/models/boatClasses.ts';
@@ -9,67 +9,70 @@ import type { BoatClass } from '@/models/boatClasses.ts';
 DataTable.use(DataTablesCore);
 
 const boatClasses = ref<BoatClass[]>([]);
-const isLoading = ref(true);
-const errorMessage = ref('');
-const hasBoatClasses = computed(() => boatClasses.value.length > 0);
+const router = useRouter();
+
+onMounted(async () => {
+  await loadBoatClasses();
+});
 
 async function loadBoatClasses() {
-  isLoading.value = true;
-  errorMessage.value = '';
-
   try {
     const response = await axios.get<BoatClass[]>('/boat-class');
     boatClasses.value = response.data;
   } catch {
-    errorMessage.value = 'Unable to load boat classes. Please try again.';
-  } finally {
-    isLoading.value = false;
+    boatClasses.value = [];
   }
 }
 
-onMounted(() => {
-  void loadBoatClasses();
-});
+function handleTableClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
 
+  if (target.classList.contains('boat-class-details')) {
+    event.preventDefault();
+    const id = target.getAttribute('data-id');
+    if (id) router.push(`/boat-class/${id}`);
+  }
+}
+
+const columns = [
+  { data: 'id', title: '#' },
+  { data: 'name', title: 'Name' },
+  {
+    data: null,
+    title: 'Handicap value',
+    render: (data: BoatClass) => `${data.handicapValue}`,
+  },
+  {
+    data: null,
+    title: 'Handicap type',
+    render: (data: BoatClass) => {
+      return data.handicapType.name;
+    },
+  },
+  {
+    data: null,
+    title: 'Actions',
+    render: (data: BoatClass) => {
+      return `<a href="/boat-class/${data.id}" class="btn btn-sm btn-secondary boat-class-details" data-id="${data.id}">Details</a>`;
+    },
+    orderable: false,
+    searchable: false,
+  },
+];
 </script>
 
 <template>
   <main class="container mt-3">
     <h1>Boat classes</h1>
-    <RouterLink :to="{ name: 'boat-class-create' }" class="btn btn-sm btn-primary mr-2"
-      >Create</RouterLink
-    >
+    <RouterLink :to="{ name: 'boat-class-create' }" class="btn btn-sm btn-primary mr-2">
+      Create
+    </RouterLink>
 
-    <div v-if="errorMessage" class="alert alert-danger mt-3" role="alert">
-      {{ errorMessage }}
-    </div>
-
-    <div v-if="isLoading" class="mt-3">Loading boat classes...</div>
-    <div v-else-if="!hasBoatClasses" class="mt-3">No boat class found.</div>
-
-    <DataTable v-else class="table table-striped table-bordered mt-3">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Handicap value</th>
-          <th>Handicap type</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in boatClasses" :key="item.id">
-          <td>{{ item.id }}</td>
-          <td>{{ item.name }}</td>
-          <td>{{ item.handicapValue }}</td>
-          <td>{{ item.handicapType.name }}</td>
-          <td>
-            <RouterLink :to="`/boat-class/${item.id}`" class="btn btn-sm btn-secondary"
-              >Details</RouterLink
-            >
-          </td>
-        </tr>
-      </tbody>
-    </DataTable>
+    <DataTable
+      :columns="columns"
+      :data="boatClasses"
+      class="table table-striped table-bordered mt-3"
+      @click="handleTableClick"
+    />
   </main>
 </template>

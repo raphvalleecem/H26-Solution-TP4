@@ -15,9 +15,28 @@ router.get('/race', async (req: Request, res: Response) => {
         res.status(500).json({error: "Internal Server Error"});
     }
 });
+router.get('/race/:id', async (req: Request, res: Response) => {
+    try {
+        const parsedId = Number(req.params.id);
+
+        if (Number.isNaN(parsedId)) {
+            return res.status(400).json({error: "id must be a number"});
+        }
+
+        const race = await getProvider().getRaceById(parsedId);
+
+        if (!race) {
+            return res.status(404).json({error: "Race not found"});
+        }
+
+        res.json(race);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
 router.post('/race/create', upload.none(), async (req: Request, res: Response) => {
     try {
-        const {name, startDate, startTime, track, raceClassId, seriesId} = req.body;
+        const {name, startDate, startTime, course, raceClassId, seriesId} = req.body;
 
         if (!name || !String(name).trim()) {
             return res.status(400).json({error: "Name is required"});
@@ -189,6 +208,25 @@ router.post('/race-entry/create', upload.none(), async (req: Request, res: Respo
 router.get('/series', async (req: Request, res: Response) => {
     try {
         const series = await getProvider().getSeries();
+        res.json(series);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
+router.get('/series/:id', async (req: Request, res: Response) => {
+    try {
+        const parsedId = Number(req.params.id);
+
+        if (Number.isNaN(parsedId)) {
+            return res.status(400).json({error: "id must be a number"});
+        }
+
+        const series = await getProvider().getSeriesById(parsedId);
+
+        if (!series) {
+            return res.status(404).json({error: "Series not found"});
+        }
+
         res.json(series);
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
@@ -483,7 +521,7 @@ router.get('/race-class-type', async (req: Request, res: Response) => {
 router.get('/race-class', async (req: Request, res: Response) => {
     try {
         const raceClass = await getProvider().getRaceClasses();
-        res.json(raceClass);
+        res.json(raceClass.map(mapRaceClassResponse));
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
@@ -502,7 +540,7 @@ router.get('/race-class/:id', async (req: Request, res: Response) => {
             return res.status(404).json({error: "RaceClass not found"});
         }
 
-        res.json(raceClass);
+        res.json(mapRaceClassResponse(raceClass));
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
@@ -574,7 +612,7 @@ router.get('/race-class/:id', async (req: Request, res: Response) => {
             return res.status(404).json({error: "RaceClass not found"});
         }
 
-        res.json(raceClass);
+        res.json(mapRaceClassResponse(raceClass));
     } catch (error) {
         res.status(500).json({error: "Internal Server Error"});
     }
@@ -589,6 +627,13 @@ function getProvider() {
         fetchProvider = new FetchProvider();
     }
     return fetchProvider;
+}
+
+function mapRaceClassResponse(raceClass: RaceClass) {
+    return {
+        ...raceClass,
+        boatClassId: raceClass.boatClass ? raceClass.boatClass.id : null,
+    };
 }
 
 export default router;

@@ -72,12 +72,25 @@ async function saveChanges() {
   isEditing.value = false;
 
   try {
+    // find selected handicap type object
+    const selectedHandicapType = handicapTypes.value.find((t) => t.id === Number(form.handicapTypeId));
+
     await axios.post('/boat-class/update', {
       id: boatClass.value.id,
       name: form.name,
       handicapValue: form.handicapValue,
-      handicapTypeId: form.handicapTypeId,
+      // send full object to match create payload shape
+      handicapType: selectedHandicapType ?? null,
     });
+
+    // update local model immediately so UI reflects change without manual reload
+    if (selectedHandicapType) {
+      boatClass.value!.handicapType = selectedHandicapType;
+    }
+
+    // refresh from backend to ensure canonical state
+    await fetchBoatClass();
+
     original.value = JSON.stringify(form);
     isEditing.value = false;
     errorMessage.value = '';

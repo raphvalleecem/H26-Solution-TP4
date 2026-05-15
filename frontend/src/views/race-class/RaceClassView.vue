@@ -18,6 +18,10 @@ async function loadRaceClasses() {
   raceClasses.value = await getRaceClasses();
 }
 
+function isMonotype(raceClass: RaceClass): boolean {
+  return raceClass.raceClassType.name.toLowerCase().includes('monotype');
+}
+
 function handleTableClick(event: MouseEvent) {
   const target = event.target as HTMLElement;
 
@@ -42,8 +46,23 @@ const columns = [
   },
   {
     data: null,
+    title: 'Boat Class',
+    render: (data: RaceClass) => {
+      // If handicap values are both 0, it's a monotype
+      if (data.minHandicap === 0 && data.maxHandicap === 0 && data.boatClass) {
+        return `<a href="/boat-class/${data.boatClass.id}" class="boat-class-link" data-id="${data.boatClass.id}">${data.boatClass.name}</a>`;
+      }
+      return '-';
+    },
+  },
+  {
+    data: null,
     title: 'Handicap range',
     render: (data: RaceClass) => {
+      // If handicap values are both 0, it's a monotype - show dash
+      if (data.minHandicap === 0 && data.maxHandicap === 0) {
+        return '-';
+      }
       const min = data.minHandicap ?? '?';
       const max = data.maxHandicap ?? '?';
       return `${min} - ${max}`;
@@ -53,6 +72,10 @@ const columns = [
     data: null,
     title: 'Handicap type',
     render: (data: RaceClass) => {
+      // If handicap values are both 0, it's a monotype - show dash
+      if (data.minHandicap === 0 && data.maxHandicap === 0) {
+        return '-';
+      }
       return data.handicapType.name;
     },
   },

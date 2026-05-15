@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
@@ -8,6 +9,7 @@ import { addRaceEntry, getRaceEntries, type RaceEntry } from '@/models/raceEntri
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
+import { getRaceById, type Race } from '@/models/races.ts';
 import { getRaceById, type Race } from '@/models/races.ts';
 
 DataTable.use(DataTablesCore);
@@ -37,6 +39,18 @@ onMounted(async () => {
   seriesRows.value = await getSeries();
   await Promise.all([loadBoats(), loadRaceEntries()]);
 });
+
+async function loadRaceItem() {
+  race.value = Number.isNaN(raceId.value) ? undefined : await getRaceById(raceId.value);
+}
+
+watch(
+  () => raceId.value,
+  async () => {
+    await loadRaceItem();
+  },
+  { immediate: true },
+);
 
 const isEditing = ref(false);
 const selectedBoatId = ref<number | null>(null);
@@ -421,6 +435,7 @@ function removeEntry(row: EntryDisplayRow) {
               </RouterLink>
               <span v-else-if="!isEditing">{{ seriesName }}</span>
               <select v-else v-model.number="form.seriesId" class="form-control">
+                <option :value="0">No series</option>
                 <option v-for="item in seriesRows" :key="item.id" :value="item.id">
                   {{ item.name }}
                 </option>

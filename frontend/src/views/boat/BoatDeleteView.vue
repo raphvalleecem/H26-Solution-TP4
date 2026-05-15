@@ -7,14 +7,7 @@ const route = useRoute();
 const router = useRouter();
 
 const boatId = computed(() => Number.parseInt(String(route.params.id), 10));
-const boats = ref<Boat[]>([]);
-const boat = computed(() =>
-  Number.isNaN(boatId.value) ? undefined : boats.value.find((row) => row.id === boatId.value),
-);
-
-onMounted(async () => {
-  boats.value = await getBoats();
-});
+const boat = computed(() => (Number.isNaN(boatId.value) ? undefined : findBoatById(boatId.value)));
 
 function confirmDelete() {
   router.push({ name: 'boat' });
@@ -28,7 +21,8 @@ function confirmDelete() {
   <section class="container mt-3">
     <h1>Delete boat</h1>
 
-    <div v-if="!boat" class="alert alert-warning mt-3">Boat not found.</div>
+    <div v-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+    <div v-else-if="!boat" class="alert alert-warning mt-3">Boat not found.</div>
 
     <div v-else class="card mt-3">
       <div class="card-body">
@@ -38,7 +32,9 @@ function confirmDelete() {
         <p class="mb-3"><strong>Helm:</strong> {{ boat.helmName }}</p>
         <p class="text-danger">Prototype UX: confirmation returns to index only.</p>
 
-        <button class="btn btn-danger mr-2" type="button" @click="confirmDelete">Delete</button>
+        <button class="btn btn-danger mr-2" type="button" @click="confirmDelete" :disabled="isDeleting">
+          {{ isDeleting ? 'Deleting...' : 'Delete' }}
+        </button>
         <RouterLink :to="{ name: 'boat' }" class="btn btn-outline-secondary">Cancel</RouterLink>
       </div>
     </div>
