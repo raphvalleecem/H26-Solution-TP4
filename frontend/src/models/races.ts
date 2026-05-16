@@ -33,7 +33,8 @@ export async function getRaces(): Promise<Race[]> {
       const startTimeValue = race.startTime ?? '';
       const isIsoDateTime = startTimeValue.includes('T') || startTimeValue.includes(' ');
       const parsedStartTime = isIsoDateTime ? new Date(startTimeValue) : null;
-      const resolvedDate = race.date ?? (parsedStartTime ? parsedStartTime.toISOString().split('T')[0]! : '-');
+      const resolvedDate =
+        race.date ?? (parsedStartTime ? parsedStartTime.toISOString().split('T')[0]! : '-');
       const resolvedStartTime = parsedStartTime
         ? parsedStartTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : startTimeValue || '-';
@@ -98,23 +99,37 @@ export async function getRaceById(id: number): Promise<Race | undefined> {
 }
 
 export async function addRace(formData: {
-   name: string;
-   date: string;
-   startTime: string;
-   course: string;
-   raceClassId: number;
-   seriesId?: number;
-   isCompleted: boolean;
- }): Promise<void> {
-   try {
-     const response = await axios.post('http://localhost:3000/race/create', formData);
-     console.log('Success:', response.data);
-   } catch (error) {
-     if (axios.isAxiosError(error)) {
-       console.error('API Error:', error.response?.data || error.message);
-       throw new Error(error.response?.data?.error || error.message || 'Failed to create race');
-     }
-     console.error('Error:', error);
-     throw error;
-   }
- }
+  name: string;
+  date: string;
+  startTime: string;
+  course: string;
+  raceClassId: number;
+  seriesId?: number;
+  isCompleted: boolean;
+}): Promise<void> {
+  try {
+    const response = await axios.post('http://localhost:3000/race/create', formData);
+    console.log('Success:', response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('API Error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || 'Failed to create race');
+    }
+    console.error('Error:', error);
+    throw error;
+  }
+}
+
+export async function updateRace(id: number, formData: FormData): Promise<void> {
+  try {
+    const response = await axios.post('/race/update', formData);
+    console.log('Success:', response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('API Error:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || error.message || 'Failed to update race');
+    }
+    console.error('Error:', error);
+    throw error;
+  }
+}
