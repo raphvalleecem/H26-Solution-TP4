@@ -31,14 +31,7 @@ async function createRace(payload: RaceFormSubmitPayload) {
    errorMessage.value = '';
 
    try {
-     // Combine date and time into a single ISO datetime string
-     const [hours, minutes] = payload.startTime.split(':');
-     const startDateTime = new Date(`${payload.date}T${hours}:${minutes}:00`);
-
-     if (isNaN(startDateTime.getTime())) {
-        errorMessage.value = 'Unable to create race: Invalid date or time format';
-        return;
-     }
+     const startDateTime = `${payload.date}T${payload.startTime}:00`;
 
      const createPayload: {
        name: string;
@@ -46,12 +39,12 @@ async function createRace(payload: RaceFormSubmitPayload) {
        startTime: string;
        course: string;
        raceClassId: number;
-        seriesId?: number;
+       seriesId?: number;
        isCompleted: boolean;
      } = {
        name: payload.name,
        date: payload.date,
-       startTime: startDateTime.toISOString(),
+       startTime: startDateTime,
        course: payload.track,
        raceClassId: payload.raceClassId,
        isCompleted: false,

@@ -62,21 +62,21 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "seriesId is required"});
         }
 
-        const parsedStartTime = new Date(`${date}T${startTime}`);
+        const parsedStartTime = new Date(startTime);
         const parsedRaceClassId = Number(raceClassId);
         const parsedSeriesId = Number(seriesId);
 
-        // if (Number.isNaN(parsedStartTime.getTime())) {
-        //     return res.status(400).json({error: "startTime must be a valid date"});
-        // }
-        //
-        // if (Number.isNaN(parsedRaceClassId)) {
-        //     return res.status(400).json({error: "raceClassId must be a number"});
-        // }
-        //
-        // if (Number.isNaN(parsedSeriesId)) {
-        //     return res.status(400).json({error: "seriesId must be a number"});
-        // }
+        if (Number.isNaN(parsedStartTime.getTime())) {
+            return res.status(400).json({error: "startTime must be a valid date"});
+        }
+
+        if (Number.isNaN(parsedRaceClassId)) {
+            return res.status(400).json({error: "raceClassId must be a number"});
+        }
+
+        if (Number.isNaN(parsedSeriesId)) {
+            return res.status(400).json({error: "seriesId must be a number"});
+        }
 
         const raceClass = await getProvider().getRaceClassById(parsedRaceClassId);
 
@@ -112,7 +112,30 @@ router.post('/race/update', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "Body is required"});
         }
 
-        const race: Race = body;
+        const {name, date, startTime, course, raceClassId, seriesId, id} = body;
+
+        const parsedStartTime = new Date(startTime);
+        const parsedRaceClassId = Number(raceClassId);
+        const parsedSeriesId = Number(seriesId);
+
+        const raceClass = await getProvider().getRaceClassById(parsedRaceClassId);
+        if (!raceClass) {
+            return res.status(404).json({error: "RaceClass not found"});
+        }
+
+        const series = await getProvider().getSeriesById(parsedSeriesId);
+        if (!series) {
+            return res.status(404).json({error: "Series not found"});
+        }
+
+        const race = new Race();
+        race.id = Number(id);
+        race.name = String(name).trim();
+        race.startTime = parsedStartTime;
+        race.course = String(course).trim();
+        race.raceClass = raceClass;
+        race.series = series;
+
         await getProvider().updateRace(race);
 
         res.json({message: "Race updated successfully", race});
