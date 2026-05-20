@@ -9,8 +9,7 @@ import { addRaceEntry, getRaceEntries, type RaceEntry } from '@/models/raceEntri
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
-import { getRaceById, type Race } from '@/models/races.ts';
-import { getRaceById, type Race } from '@/models/races.ts';
+import { getRaceById, type Race, updateRace } from '@/models/races.ts';
 
 DataTable.use(DataTablesCore);
 
@@ -277,12 +276,31 @@ function cancelEdit() {
   isEditing.value = false;
 }
 
-function saveChanges() {
-  if (!hasChanges.value) {
+async function saveChanges() {
+  if (!hasChanges.value || !race.value) {
     return;
   }
-  original.value = { ...form };
-  isEditing.value = false;
+
+  try {
+    const formData = new FormData();
+    formData.append('id', String(race.value.id));
+    formData.append('name', form.name);
+    formData.append('date', form.date);
+    formData.append('startTime', `${form.date}T${form.startTime}:00`);
+    formData.append('course', form.track);
+    formData.append('raceClassId', String(form.raceClassId));
+    formData.append('seriesId', String(form.seriesId));
+    formData.append('isCompleted', String(form.isCompleted));
+
+    await updateRace(race.value.id, formData);
+
+    original.value = { ...form };
+    isEditing.value = false;
+    await loadRaceItem();
+  } catch (error) {
+    console.error('Failed to save changes:', error);
+    alert('Failed to save changes. Please try again.');
+  }
 }
 
 async function addEntry() {
