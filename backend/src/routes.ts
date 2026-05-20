@@ -36,17 +36,33 @@ router.get('/race/:id', async (req: Request, res: Response) => {
 });
 router.post('/race/create', upload.none(), async (req: Request, res: Response) => {
     try {
-        const {name, startDate, startTime, course, raceClassId, seriesId} = req.body;
+        // tolerate multiple frontend payload shapes/aliases for these fields
+        const body = req.body ?? {};
+        const name = body.name;
+        const startTime = body.startTime ?? body.time ?? body.raceTime ?? body.start_time;
+        const track = body.track ?? body.course ?? body.raceTrack;
+        const raceClassId = body.raceClassId ?? body.race_class_id;
+        const seriesId = body.seriesId ?? body.series_id;
+
+        let startDate = body.startDate ?? body.date ?? body.raceDate ?? body.start_date;
+
+        // If only an ISO datetime was provided in startTime, derive YYYY-MM-DD.
+        if (!startDate && startTime) {
+            const parsedDateFromTime = new Date(startTime);
+            if (!Number.isNaN(parsedDateFromTime.getTime())) {
+                startDate = parsedDateFromTime.toISOString().slice(0, 10);
+            }
+        }
 
         if (!name || !String(name).trim()) {
             return res.status(400).json({error: "Name is required"});
         }
 
-        if (!startDate) {
+        if (!startDate || !String(startDate).trim()) {
             return res.status(400).json({error: "startDate is required"});
         }
 
-        if (!startTime) {
+        if (!startTime || !String(startTime).trim()) {
             return res.status(400).json({error: "startTime is required"});
         }
 
@@ -54,27 +70,24 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "track is required"});
         }
 
-        if (raceClassId === undefined || raceClassId === null) {
+        if (raceClassId === undefined || raceClassId === null || String(raceClassId).trim() === "") {
             return res.status(400).json({error: "raceClassId is required"});
         }
 
-        if (seriesId === undefined || seriesId === null) {
-            return res.status(400).json({error: "seriesId is required"});
-        }
-
-        const parsedStartTime = new Date(startTime);
+        const normalizedStartTime = String(startTime).trim().replace(/^T/, "");
+        const timeFormat = /^\d{2}:\d{2}(:\d{2})?$/;
         const parsedRaceClassId = Number(raceClassId);
-        const parsedSeriesId = Number(seriesId);
+        const parsedSeriesId = (seriesId === undefined || seriesId === null || String(seriesId).trim() === "") ? null : Number(seriesId);
 
-        if (Number.isNaN(parsedStartTime.getTime())) {
-            return res.status(400).json({error: "startTime must be a valid date"});
+        if (!timeFormat.test(normalizedStartTime)) {
+            return res.status(400).json({error: "startTime must be in HH:mm or HH:mm:ss format"});
         }
 
         if (Number.isNaN(parsedRaceClassId)) {
             return res.status(400).json({error: "raceClassId must be a number"});
         }
 
-        if (Number.isNaN(parsedSeriesId)) {
+        if (parsedSeriesId !== null && Number.isNaN(parsedSeriesId)) {
             return res.status(400).json({error: "seriesId must be a number"});
         }
 
@@ -96,7 +109,8 @@ router.post('/race/create', upload.none(), async (req: Request, res: Response) =
         const race = new Race();
         race.name = String(name).trim();
         race.startDate = String(startDate).trim();
-        race.startTime = String(startTime).trim();
+        // store startTime as string (entity defines startTime as string)
+        race.startTime = normalizedStartTime;
         race.track = String(track).trim();
         race.raceClass = raceClass;
         race.series = series ?? null;
@@ -116,11 +130,28 @@ router.post('/race/update', upload.none(), async (req: Request, res: Response) =
             return res.status(400).json({error: "Body is required"});
         }
 
-        const {name, date, startTime, course, raceClassId, seriesId, id} = body;
+        const {name, date, startTime, track, raceClassId, seriesId, id} = body;
 
-        const parsedStartTime = new Date(startTime);
+        const normalizedStartTime = String(startTime).trim().replace(/^T/, "");
+        const timeFormat = /^\d{2}:\d{2}(:\d{2})?$/;
         const parsedRaceClassId = Number(raceClassId);
         const parsedSeriesId = Number(seriesId);
+
+        if (!date) {
+            return res.status(400).json({error: "date is required"});
+        }
+
+        if (!startTime) {
+            return res.status(400).json({error: "startTime is required"});
+        }
+
+        if (!track || !String(track).trim()) {
+            return res.status(400).json({error: "track is required"});
+        }
+
+        if (!timeFormat.test(normalizedStartTime)) {
+            return res.status(400).json({error: "startTime must be in HH:mm or HH:mm:ss format"});
+        }
 
         const raceClass = await getProvider().getRaceClassById(parsedRaceClassId);
         if (!raceClass) {
@@ -135,8 +166,11 @@ router.post('/race/update', upload.none(), async (req: Request, res: Response) =
         const race = new Race();
         race.id = Number(id);
         race.name = String(name).trim();
-        race.startTime = parsedStartTime;
-        race.course = String(course).trim();
+        // entity expects startTime as string
+        race.startTime = normalizedStartTime;
+        // entity uses `track` (not `course`)
+        race.track = String(track).trim();
+        // preserve/assign series and raceClass
         race.raceClass = raceClass;
         race.series = series;
 

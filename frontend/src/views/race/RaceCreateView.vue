@@ -14,50 +14,45 @@ const isSubmitting = ref(false);
   raceClassesLoaded.value = true;
 const errorMessage = ref('');
 
-type RaceFormSubmitPayload = {
-  name: string;
-  date: string;
-  startTime: string;
-  track: string;
-  raceClassId: number;
-  seriesId: number;
-};
+// use RaceCreatePayload emitted by RaceForm
 
 onMounted(async () => {
   raceClasses.value = await getRaceClasses();
   seriesRows.value = await getSeries();
 });
 
-async function createRace(payload: RaceFormSubmitPayload) {
+async function createRace(payload: RaceCreatePayload) {
    isSubmitting.value = true;
    errorMessage.value = '';
 
    try {
-     const startDateTime = `${payload.date}T${payload.startTime}:00`;
+      // Normalize time to HH:mm or HH:mm:ss expected by backend
+      let timeOnly: string = payload.startTime ?? '';
+      if (timeOnly.includes('T')) {
+        timeOnly = timeOnly.split('T')[1] ?? '';
+      }
+      if (timeOnly.includes(' ')) {
+        timeOnly = timeOnly.split(' ')[1] ?? timeOnly;
+      }
+      // strip milliseconds if present
+      timeOnly = timeOnly.split('.')[0];
+      // if the form provided only HH:mm, that's acceptable
 
-     const createPayload: {
-       name: string;
-       date: string;
-       startTime: string;
-       course: string;
-       raceClassId: number;
-       seriesId?: number;
-       isCompleted: boolean;
-     } = {
-       name: payload.name,
-       date: payload.date,
-       startTime: startDateTime,
-       course: payload.track,
-       raceClassId: payload.raceClassId,
-       isCompleted: false,
-     };
+      const apiPayload: any = {
+        name: payload.name,
+        date: payload.startDate,
+        startTime: timeOnly,
+        course: payload.track,
+        raceClassId: payload.raceClassId,
+        isCompleted: false,
+      };
 
       if (payload.seriesId > 0) {
-        createPayload.seriesId = payload.seriesId;
+        apiPayload.seriesId = payload.seriesId;
       }
 
-     console.log('Creating race with payload:', createPayload);
-      await addRace(createPayload);
+     console.log('Creating race with payload:', apiPayload);
+      await addRace(apiPayload);
      console.log('Race created successfully');
      await router.push({ name: 'race' });
    } catch (error) {

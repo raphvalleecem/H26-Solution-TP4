@@ -27,7 +27,7 @@ const props = withDefaults(
   {
     initialValue: () => ({
       name: '',
-      date: '',
+      startDate: '',
       startTime: '',
       track: '',
       raceClassId: 1,
@@ -44,18 +44,6 @@ const emit = defineEmits<{
 }>();
 
 const form = reactive<RaceFormPayload>({ ...defaultInitialValue, ...props.initialValue });
-
-function onDateInput(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const year = input.value.split('-')[0] ?? '';
-
-  if (year.length > 4) {
-    input.value = form.startDate;
-    return;
-  }
-
-  form.startDate = input.value;
-}
 
 function onSubmit() {
   emit('submit', { ...form });
@@ -82,15 +70,14 @@ function onSubmit() {
 
       <div class="form-group">
         <label for="race-date">Date</label>
-        <input
-          id="race-date"
-          :value="form.startDate"
-          class="form-control"
-          max="9999-12-31"
-          required
-          type="date"
-          @input="onDateInput"
-        />
+          <input
+            id="race-date"
+            v-model="form.startDate"
+            class="form-control"
+            max="9999-12-31"
+            required
+            type="date"
+          />
       </div>
 
        <div class="form-group">

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
@@ -28,7 +27,6 @@ const seriesItem = computed(() =>
   Number.isNaN(seriesId.value) ? undefined : seriesRows.value.find((row) => row.id === seriesId.value),
 );
 
-const raceClasses = ref<RaceClass[]>([]);
 const racesList = ref<Race[]>([]);
 const isEditing = ref(false);
 const selectedBoatId = ref<number | null>(null);
@@ -99,7 +97,6 @@ const hasChanges = computed(() => {
 });
 
 const raceClassName = computed(() => {
-  return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-';
   return raceClasses.value.find((item) => item.id === form.raceClassId)?.name ?? '-';
 });
 

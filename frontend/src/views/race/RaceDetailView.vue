@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
@@ -24,6 +23,7 @@ type RaceForm = {
 };
 
 const route = useRoute();
+const raceId = computed(() => Number.parseInt(String(route.params.id), 10));
 const race = ref<Race | null>(null);
 
 const raceClasses = ref<RaceClass[]>([]);
@@ -40,11 +40,12 @@ onMounted(async () => {
 });
 
 async function loadRaceItem() {
-  race.value = Number.isNaN(raceId.value) ? undefined : await getRaceById(raceId.value);
+  const id = Number.parseInt(String(route.params.id), 10);
+  race.value = Number.isNaN(id) ? null : await getRaceById(id);
 }
 
 watch(
-  () => raceId.value,
+  () => route.params.id,
   async () => {
     await loadRaceItem();
   },
@@ -88,9 +89,9 @@ async function loadRaceEntries() {
 }
 
 async function loadRace() {
-  const raceId = Number.parseInt(String(route.params.id), 10);
+  const id = raceId.value;
 
-  if (Number.isNaN(raceId)) {
+  if (Number.isNaN(id)) {
     race.value = null;
     original.value = null;
     errorMessage.value = 'Invalid race id.';
@@ -102,7 +103,7 @@ async function loadRace() {
   errorMessage.value = '';
 
   try {
-    const loadedRace = await getRaceById(raceId);
+    const loadedRace = await getRaceById(id);
 
     if (!loadedRace) {
       race.value = null;
@@ -285,8 +286,8 @@ async function saveChanges() {
     const formData = new FormData();
     formData.append('id', String(race.value.id));
     formData.append('name', form.name);
-    formData.append('date', form.date);
-    formData.append('startTime', `${form.date}T${form.startTime}:00`);
+    formData.append('date', form.startDate);
+    formData.append('startTime', `${form.startDate}T${form.startTime}:00`);
     formData.append('course', form.track);
     formData.append('raceClassId', String(form.raceClassId));
     formData.append('seriesId', String(form.seriesId));
