@@ -19,6 +19,16 @@ export async function getRaceEntries(): Promise<RaceEntry[]> {
   }
 }
 
+export async function getRaceEntriesByRaceId(raceId: number): Promise<any[]> {
+  try {
+    const response = await axios.get<any[]>(`/race-entry/${raceId}`);
+    // return raw rows (with boat and race objects) so callers can merge boat details
+    return response.data;
+  } catch {
+    return [];
+  }
+}
+
 export function findRaceEntryById(id: number): RaceEntry | undefined {
   return raceEntriesCache.find((row) => row.id === id);
 }

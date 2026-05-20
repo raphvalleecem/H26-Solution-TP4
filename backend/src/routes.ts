@@ -209,6 +209,29 @@ router.get('/race-entry', async (req: Request, res: Response) => {
         res.status(500).json({error: "Internal Server Error"});
     }
 });
+router.get('/race-entry/:raceId', async (req: Request, res: Response) => {
+    try {
+        const parsedRaceId = Number(req.params.raceId);
+
+        if (Number.isNaN(parsedRaceId)) {
+            return res.status(400).json({error: "raceId must be a number"});
+        }
+
+        // Verify race exists
+        const race = await getProvider().getRaceById(parsedRaceId);
+        if (!race) {
+            return res.status(404).json({error: "Race not found"});
+        }
+
+        // Get all race entries and filter by raceId
+        const allRaceEntries = await getProvider().getRaceEntries();
+        const raceEntries = allRaceEntries.filter((entry) => entry.race?.id === parsedRaceId);
+
+        res.json(raceEntries);
+    } catch (error) {
+        res.status(500).json({error: "Internal Server Error"});
+    }
+});
 router.post('/race-entry/create', upload.none(), async (req: Request, res: Response) => {
     try {
         const {boatId, raceId} = req.body;

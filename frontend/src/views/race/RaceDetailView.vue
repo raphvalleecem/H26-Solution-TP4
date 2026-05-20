@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-bs4';
 import { getBoats, type Boat } from '@/models/boats.ts';
-import { addRaceEntry, getRaceEntries, type RaceEntry } from '@/models/raceEntries.ts';
+import { addRaceEntry, getRaceEntries, getRaceEntriesByRaceId, type RaceEntry } from '@/models/raceEntries.ts';
 import { type RaceOutcome, type RaceOutcomeResult, raceOutcomes } from '@/models/raceOutcomes.ts';
 import { getRaceClasses, type RaceClass } from '@/models/raceClass.ts';
 import { getSeries, type Series } from '@/models/series.ts';
@@ -85,7 +85,28 @@ async function loadBoats() {
 }
 
 async function loadRaceEntries() {
-  raceEntries.value = await getRaceEntries();
+  const id = Number.parseInt(String(route.params.id), 10);
+  if (Number.isNaN(id)) {
+    raceEntries.value = [];
+    return;
+  }
+
+  const raw = await getRaceEntriesByRaceId(id);
+
+  // Merge boat objects returned by the endpoint into local boats cache so the UI can find them
+  raw.forEach((r: any) => {
+    if (r.boat && !boats.value.some((b) => b.id === r.boat.id)) {
+      boats.value.push(r.boat as Boat);
+    }
+  });
+
+  // Normalize into RaceEntry[] for existing consumers
+  raceEntries.value = raw.map((r: any) => ({
+    id: r.id,
+    boatId: r.boat?.id ?? r.boatId,
+    raceId: r.race?.id ?? r.raceId,
+    seriesEntryId: r.seriesEntryId,
+  }));
 }
 
 async function loadRace() {
@@ -377,6 +398,21 @@ function removeEntry(row: EntryDisplayRow) {
     closeEntryModal();
   }
 }
+
+function formatFinishTime(value: string | undefined): string {
+  if (!value) return '-';
+  // If value seems like an ISO datetime or datetime-local, try to parse and format
+  try {
+    const normalized = value.includes('T') || value.includes(' ') ? value : value;
+    const d = new Date(normalized);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+  } catch {
+    // fallthrough
+  }
+  return value;
+}
 </script>
 
 <template>
@@ -495,15 +531,15 @@ function removeEntry(row: EntryDisplayRow) {
       </div>
 
       <h2 class="h4 mt-4">Entries</h2>
-      <DataTable class="table table-striped table-bordered mt-2">
+      <table class="table table-striped table-bordered mt-2">
         <thead>
           <tr>
             <th>Boat</th>
-            <th v-if="form.isCompleted">Result</th>
-            <th v-if="form.isCompleted">Position</th>
-            <th v-if="form.isCompleted">Finish time</th>
-            <th v-if="form.isCompleted">Elapsed time</th>
-            <th v-if="form.isCompleted">Corrected time</th>
+            <th>Result</th>
+            <th>Position</th>
+            <th>Finish time</th>
+            <th>Elapsed time</th>
+            <th>Corrected time</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -512,11 +548,11 @@ function removeEntry(row: EntryDisplayRow) {
             <td>
               <RouterLink :to="`/boat/${row.boat.id}`">{{ row.boat.name }}</RouterLink>
             </td>
-            <td v-if="form.isCompleted">{{ row.outcome?.result || '-' }}</td>
-            <td v-if="form.isCompleted">{{ row.outcome?.position ?? '-' }}</td>
-            <td v-if="form.isCompleted">{{ row.outcome?.finishTime ?? '-' }}</td>
-            <td v-if="form.isCompleted">{{ row.outcome?.elapsedTime ?? '-' }}</td>
-            <td v-if="form.isCompleted">{{ row.outcome?.correctedTime ?? '-' }}</td>
+            <td>{{ row.outcome?.result || '-' }}</td>
+            <td>{{ row.outcome?.position ?? '-' }}</td>
+            <td>{{ formatFinishTime(row.outcome?.finishTime) }}</td>
+            <td>{{ row.outcome?.elapsedTime ?? '-' }}</td>
+            <td>{{ row.outcome?.correctedTime ?? '-' }}</td>
             <td>
               <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-primary" type="button" @click="openEntryModal(row)">
@@ -533,7 +569,7 @@ function removeEntry(row: EntryDisplayRow) {
             </td>
           </tr>
         </tbody>
-      </DataTable>
+      </table>
 
       <div class="card p-3 mt-3">
         <h3 class="h6">Add entry (prototype UX)</h3>
